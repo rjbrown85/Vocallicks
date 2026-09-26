@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Riff Blocks</title>
+<meta name="description" content="Call-and-response practice for five R&amp;B riff building blocks, with key walks, shape shifting, combos, and a grand piano.">
+<style>
+@font-face{font-family:'Courier Prime';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/courier-prime-400.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Courier Prime';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/courier-prime-700.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Dela Gothic One';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/dela-gothic-one-400.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Permanent Marker';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/permanent-marker-400.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+
+:root{
+  --paper:#E6E8E3; --sheet:#FBFBF8; --ink:#161616; --soft:#46484a;
+  --pink:#FF3D8B; --blue:#2350D8; --green:#14A374; --orange:#FF6B1A; --yellow:#FFCC00;
+  --tape:rgba(255,214,10,.7); --grid:rgba(35,80,216,.13);
+  --beat:112px; --step:11px;
+  color-scheme:light;
+}
+@media (max-width:560px){:root{--beat:84px}}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);background-image:radial-gradient(rgba(22,22,22,.085) 1px,transparent 1.35px);background-size:7px 7px;
+  color:var(--ink);font-family:"Courier Prime","Courier New",Courier,monospace;font-size:17px;line-height:1.55}
+.wrap{max-width:900px;margin:0 auto;padding-inline:18px;padding-block:30px 170px}
+h1,h2,h3,.btn,.tabs a,label,dt,.num,.step b,.bar-state strong{font-family:"Dela Gothic One","Arial Black",Impact,sans-serif;font-weight:400}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--blue);text-decoration-thickness:2px;text-underline-offset:3px}
+
+/* masthead */
+.mast{display:grid;gap:18px;margin-bottom:26px}
+.mast h1{display:flex;flex-wrap:wrap;gap:.08em .22em;font-size:clamp(3.2rem,13vw,6.6rem);line-height:.98;letter-spacing:.01em}
+.cut{display:inline-block;padding:.04em .2em .1em}
+.c1{background:var(--ink);color:var(--sheet);transform:rotate(-2.2deg);text-shadow:.05em .05em 0 var(--pink)}
+.c2{background:var(--yellow);color:var(--ink);transform:rotate(1.6deg);border:3px solid var(--ink)}
+.intro{max-width:60ch;font-size:1.12rem}
+.marker{font-family:"Permanent Marker","Comic Sans MS",cursive;color:var(--blue);font-size:1.45rem;transform:rotate(-2deg);display:inline-block;line-height:1.2}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;gap:10px;overflow-x:auto;
+  padding-block:12px;margin-bottom:26px;background:var(--paper);border-bottom:3px solid var(--ink)}
+.tabs a{flex:0 0 auto;font-size:1rem;color:var(--ink);text-decoration:none;background:var(--sheet);border:2.5px solid var(--ink);
+  padding:7px 14px;box-shadow:3px 3px 0 var(--ink)}
+.tabs a:hover{background:var(--pink)}
+.tabs a:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+
+/* sections and panels */
+section{scroll-margin-top:80px;margin-bottom:54px}
+.sec-head{display:grid;gap:14px;margin-bottom:22px}
+.tag{justify-self:start;font-size:clamp(1.9rem,6vw,2.7rem);background:var(--ink);color:var(--sheet);padding:.08em .35em .14em;
+  transform:rotate(-1.2deg);box-shadow:5px 5px 0 var(--pink)}
+.sec-head p{max-width:62ch}
+.stack{display:grid;gap:34px}
+.panel{position:relative;background:var(--sheet);border:2.5px solid var(--ink);padding:26px 22px 22px;box-shadow:6px 6px 0 rgba(22,22,22,.18)}
+.panel.taped::before{content:"";position:absolute;top:-14px;left:50%;width:120px;height:28px;background:var(--tape);
+  transform:translateX(-50%) rotate(-3deg);border-left:2px dashed rgba(22,22,22,.18);border-right:2px dashed rgba(22,22,22,.18)}
+
+/* setup */
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:16px 18px;margin-top:6px}
+label{display:grid;gap:6px;font-size:.95rem}
+select,input[type=range]{width:100%;font:inherit;font-family:"Courier Prime","Courier New",monospace;font-size:1.02rem}
+select{padding:9px 10px;border:2.5px solid var(--ink);background:var(--sheet);color:var(--ink);border-radius:0}
+input[type=range]{accent-color:var(--pink);height:38px}
+select:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.howto{display:grid;gap:10px;margin-top:22px;padding-top:18px;border-top:2.5px dashed var(--ink)}
+.howto p{max-width:64ch}
+.hint{font-weight:700}
+
+/* buttons */
+.btn{font-size:1rem;line-height:1.2;color:var(--ink);background:var(--sheet);border:2.5px solid var(--ink);padding:10px 16px;
+  box-shadow:3px 3px 0 var(--ink);cursor:pointer;border-radius:0}
+.btn:hover{background:#fff}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.btn.pri{background:var(--pink)}
+.btn[disabled]{opacity:.45;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+
+/* riff cards */
+.riff-head{display:flex;align-items:baseline;gap:14px;margin-bottom:14px}
+.num{font-size:2.6rem;line-height:1;color:var(--c);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill}
+.riff-head h3{font-size:clamp(1.5rem,4.8vw,2rem)}
+.stair-wrap{overflow-x:auto;padding:8px 6px 10px;margin-bottom:16px;border:2px solid var(--ink);
+  background-color:#fff;background-image:linear-gradient(var(--grid) 1px,transparent 1px);background-size:100% 22px}
+.stair{display:flex;align-items:stretch;position:relative}
+.col{position:relative;flex:0 0 auto;min-width:36px}
+.brick{position:absolute;left:3px;right:3px;height:40px;background:var(--c);color:var(--on);border:2.5px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;font-family:"Dela Gothic One","Arial Black",sans-serif;font-size:1rem;
+  transition:transform .08s,background .08s}
+.brick.acc::before{content:">";position:absolute;top:-30px;left:50%;transform:translateX(-50%) scaleX(1.3);font-size:1.3rem;color:var(--ink)}
+.brick.hit{transform:translateY(-7px);background:var(--ink);color:var(--sheet);box-shadow:4px 4px 0 var(--c)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 18px;margin:0 0 14px}
+.facts div{display:grid;gap:2px}
+dt{font-size:.92rem;letter-spacing:.04em;color:var(--soft)}
+dd{margin:0;font-size:1.2rem;font-weight:700}
+.tip{max-width:64ch;margin-bottom:18px}
+.ladder{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(152px,1fr));gap:12px}
+.step{width:100%;height:100%;text-align:left;display:grid;gap:4px;align-content:start;font:inherit;font-size:.98rem;line-height:1.4;
+  color:var(--ink);background:var(--sheet);border:2.5px solid var(--ink);padding:12px 12px 14px;box-shadow:3px 3px 0 var(--ink);cursor:pointer}
+.step:hover{background:color-mix(in srgb,var(--c) 22%,var(--sheet))}
+.step:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.step:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.step .n{font-family:"Dela Gothic One","Arial Black",sans-serif;font-size:1.5rem;line-height:1;color:var(--c);-webkit-text-stroke:1.5px var(--ink);paint-order:stroke fill}
+.step b{font-size:1.05rem}
+
+/* shapes */
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.chip{font-family:"Dela Gothic One","Arial Black",sans-serif;font-size:.98rem;padding:8px 14px;border:2.5px solid var(--ink);background:var(--sheet);cursor:pointer;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--c,var(--pink));box-shadow:3px 3px 0 var(--ink)}
+.chip:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.shape-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px;margin-bottom:20px}
+.mini{position:relative;background:var(--sheet);border:2.5px solid var(--ink);padding:16px 14px 14px;display:grid;gap:10px;align-content:start}
+.mini h3{font-size:1.15rem}
+.mini .stair-wrap{margin:0}
+.sticker{position:absolute;top:-16px;right:12px;font-family:"Permanent Marker","Comic Sans MS",cursive;font-size:1.1rem;
+  background:var(--yellow);border:2px solid var(--ink);padding:2px 12px;transform:rotate(3deg);line-height:1.4}
+.sticker.pink{background:var(--pink)}
+.sticker.blue{background:var(--blue);color:#fff}
+
+/* key walk */
+.keyladder{display:flex;align-items:flex-end;gap:6px;overflow-x:auto;padding:14px 4px 8px;margin:4px 0 18px}
+.kchip{flex:0 0 auto;font-family:"Dela Gothic One","Arial Black",sans-serif;font-size:.95rem;border:2.5px solid var(--ink);
+  background:var(--sheet);padding:6px 10px;min-width:46px;text-align:center;transition:transform .1s}
+.kchip.on{background:var(--pink);transform:translateY(-8px);box-shadow:3px 3px 0 var(--ink)}
+.kchip.done{background:color-mix(in srgb,var(--pink) 25%,var(--sheet))}
+#walk .panel{display:grid;gap:16px}
+#walk .stair-wrap{margin:0}
+.warn{font-weight:700;color:#B0123F}
+
+/* combos */
+.combo-grid{display:grid;gap:30px}
+.combo h3{font-size:clamp(1.25rem,4vw,1.6rem);margin-bottom:6px}
+.combo .kicker{font-family:"Dela Gothic One","Arial Black",sans-serif;font-size:1rem;color:var(--soft);margin-bottom:4px}
+.combo .note{max-width:62ch;margin:0 0 14px}
+.combo .stair-wrap{margin-bottom:14px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:12px;font-size:.98rem}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:18px;height:18px;border:2px solid var(--ink);background:var(--c);display:inline-block}
+.empty{color:var(--soft)}
+
+/* log */
+.log-list{list-style:none;padding:0;margin:0 0 18px;display:grid;gap:10px}
+.log-list li{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;padding-bottom:10px;border-bottom:2px dashed rgba(22,22,22,.3)}
+.rate-chip{font-family:"Dela Gothic One","Arial Black",sans-serif;font-size:.9rem;padding:2px 10px;border:2px solid var(--ink)}
+.rate-chip.Clean{background:var(--green)}.rate-chip.Almost{background:var(--yellow)}.rate-chip.Messy{background:var(--pink)}
+
+footer{display:grid;gap:10px;border-top:3px solid var(--ink);padding-top:20px}
+footer p{max-width:66ch}
+
+/* now-playing bar */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--ink);color:var(--sheet);border-top:5px solid var(--pink);
+  padding:14px 18px calc(14px + env(safe-area-inset-bottom,0px))}
+.bar.turn{background:var(--pink);color:var(--ink);border-top-color:var(--ink)}
+.bar-in{max-width:900px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
+.bar-state{display:grid;gap:2px;min-width:0}
+.bar-state strong{font-size:1.7rem;line-height:1.1}
+.bar-state span{font-size:1rem}
+.bar .btn{box-shadow:3px 3px 0 var(--pink)}
+.bar.turn .btn{box-shadow:3px 3px 0 var(--ink)}
+.bar .row{gap:10px}
+
+@media (prefers-reduced-motion:reduce){.brick{transition:none}.brick.hit{transform:none}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <h1><span class="cut c1">Riff</span><span class="cut c2">Blocks</span></h1>
+    <p class="intro">The five R&amp;B riff shapes from Crystal Cherelle's building-block lesson, set up as drills you sing back to the piano. Take one riff through its five steps, then move the shapes around the scale, then chain them into her combinations.</p>
+    <p class="marker">start slow, keep it light</p>
+  </header>
+
+  <nav class="tabs" aria-label="Sections">
+    <a href="#setup">Setup</a><a href="#riffs">The five riffs</a><a href="#walk">Key walk</a><a href="#shapes">Move the shape</a><a href="#combos">Combos</a><a href="#log">Log</a>
+  </nav>
+
+  <section id="setup">
+    <div class="panel taped">
+      <div class="sec-head"><h2 class="tag">Setup</h2></div>
+      <div class="fields">
+        <label for="set">Scale
+          <select id="set">
+            <option value="minor">Minor pentatonic (her default)</option>
+            <option value="blues">Blues</option>
+            <option value="major">Major</option>
+            <option value="majpent">Major pentatonic</option>
+          </select>
+        </label>
+        <label for="key">Key
+          <select id="key"></select>
+        </label>
+        <label for="tempo"><span>Tempo: <span id="tempoOut">70</span> bpm</span>
+          <input type="range" id="tempo" min="40" max="120" step="5" value="70">
+        </label>
+        <label for="cap">Highest note today
+          <select id="cap">
+            <option value="67">G4</option><option value="69">A4</option><option value="71">B4</option>
+            <option value="72" selected>C5</option><option value="74">D5</option>
+          </select>
+        </label>
+        <label for="oct">Octave
+          <select id="oct"><option value="0">As written</option><option value="-12">One octave down</option></select>
+        </label>
+        <label for="sound">Sound
+          <select id="sound"><option value="piano">Grand piano</option><option value="synth">Simple synth</option></select>
+        </label>
+        <label for="mode">Rounds
+          <select id="mode"><option value="echo">Echo each riff back</option><option value="along">Sing along</option></select>
+        </label>
+      </div>
+      <div class="howto">
+        <p class="hint" id="targetHint"></p>
+        <p id="soundStatus">Loading the grand piano…</p>
+        <p>Each run opens with four clicks. In echo rounds the piano plays the riff, then leaves you the same stretch of time to sing it back over a soft drone. The page can't hear you, so record a few rounds on your phone and listen back for the quick notes.</p>
+        <p>Keep riffs light while they're new and add Curbing-level volume only once they're clean. Stop if anything feels scratchy or tight.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="riffs">
+    <div class="sec-head">
+      <h2 class="tag">The five riffs</h2>
+      <p>Each riff has a five-step ladder. Tap a step to run it. Her tempo is 100 bpm, so the speed-up step climbs from your tempo toward that.</p>
+    </div>
+    <div class="stack" id="riffList"></div>
+  </section>
+
+  <section id="walk">
+    <div class="sec-head">
+      <h2 class="tag">Key walk</h2>
+      <p>Pick a riff and the range you want it to cover. Each key opens with one bar of the chord that fits the riff, then the riff plays four times. The walk moves up a half step at a time, and after the top key it comes back down to where it started. It uses the scale and tempo from Setup.</p>
+    </div>
+    <div class="panel taped">
+      <div class="fields">
+        <label for="wItem">Riff or combo<select id="wItem"></select></label>
+        <label for="wLow">Lowest note<select id="wLow"></select></label>
+        <label for="wHigh">Highest note<select id="wHigh"></select></label>
+        <label for="wReps">Times per key
+          <select id="wReps"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="6">6</option></select>
+        </label>
+        <label for="wMode">Each time
+          <select id="wMode"><option value="along">Sing along</option><option value="echo">Echo after the piano</option></select>
+        </label>
+      </div>
+      <p class="hint" id="wSummary"></p>
+      <div class="stair-wrap"><div class="stair" id="wStair"></div></div>
+      <div class="keyladder" id="wKeys" aria-label="Keys on the way up"></div>
+      <div class="row"><button class="btn pri" type="button" id="wStart">Start the walk</button></div>
+    </div>
+  </section>
+
+  <section id="shapes">
+    <div class="sec-head">
+      <h2 class="tag">Move the shape</h2>
+      <p>All five riffs are anchored to the same home note. To use them while improvising, you need to start a shape anywhere in the scale. Pick a shape and the piano runs it from each scale step, lowest start first.</p>
+    </div>
+    <div class="chips" id="shapeChips"></div>
+    <div class="shape-grid" id="shapeGrid"></div>
+    <div class="row"><button class="btn pri" id="shapeAll" type="button">Echo every position</button></div>
+  </section>
+
+  <section id="combos">
+    <div class="sec-head">
+      <h2 class="tag">Combos</h2>
+      <p>Her combinations chain blocks at the pitches you've been practicing, so the join between two blocks often repeats a note or skips one. Get each join clean at slow speed before you echo it at your tempo.</p>
+    </div>
+    <div class="combo-grid" id="comboList"></div>
+
+    <div class="panel taped combo" id="builder" style="margin-top:40px">
+      <p class="kicker">Build your own</p>
+      <h3>Chain up to six blocks</h3>
+      <p class="note">Tap blocks to add them in order. She tried a few orders that sounded disconnected, so listen for joins that flow.</p>
+      <div class="chips" id="buildChips"></div>
+      <div class="stair-wrap"><div class="stair" id="buildStair"></div></div>
+      <p class="empty" id="buildEmpty">Nothing chained yet.</p>
+      <div class="row">
+        <button class="btn" type="button" id="bListen">Listen</button>
+        <button class="btn pri" type="button" id="bEcho">Echo ×4</button>
+        <button class="btn" type="button" id="bUndo">Remove last</button>
+        <button class="btn" type="button" id="bClear">Clear</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="log">
+    <div class="panel taped">
+      <div class="sec-head"><h2 class="tag">Log</h2><p>Rate a run when it finishes and it lands here with the key and tempo, newest first. It stays in this browser only.</p></div>
+      <ol class="log-list" id="logList"></ol>
+      <p class="empty" id="logEmpty">No runs rated yet.</p>
+      <button class="btn" type="button" id="clearLog">Clear log</button>
+    </div>
+  </section>
+
+  <footer>
+    <p>Riffs, names, and combinations come from <a href="https://www.youtube.com/watch?v=saWqsqZUy5M" target="_blank" rel="noopener">Master 5 R&amp;B Riffs Every Pro Singer Uses</a> by Indie Artist School. Notes and rhythms come from her <a href="https://riffbuilder.indieartistschool.com" target="_blank" rel="noopener">Riff Builder</a>.</p>
+    <p>Piano sound: <a href="https://sfzinstruments.github.io/pianos/salamander/" target="_blank" rel="noopener">Salamander Grand Piano</a> by Alexander Holm (CC BY 3.0), played through <a href="https://tonejs.github.io/" target="_blank" rel="noopener">Tone.js</a>. Fonts: Dela Gothic One, Courier Prime, and Permanent Marker, bundled with their licenses.</p>
+    <p>Combination pitches follow Riff Builder, which joins blocks at fixed pitch. In the video she sometimes starts the second block on a different note.</p>
+  </footer>
+</div>
+
+<div class="bar" id="bar" hidden>
+  <div class="bar-in">
+    <div class="bar-state" aria-live="polite"><strong id="bState">Count-in</strong><span id="bDetail"></span></div>
+    <div class="row" id="bRun"><button class="btn" type="button" id="bStop">Stop</button></div>
+    <div class="row" id="bRate" hidden>
+      <button class="btn" type="button" data-r="Clean">Clean</button>
+      <button class="btn" type="button" data-r="Almost">Almost</button>
+      <button class="btn" type="button" data-r="Messy">Messy</button>
+      <button class="btn" type="button" id="bSkip">Skip</button>
+    </div>
+    <div class="row" id="bBump" hidden>
+      <button class="btn" type="button" id="bumpBtn">Raise tempo</button>
+      <button class="btn" type="button" id="bDone">Done</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/Tone.min.js"></script>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const SHARP=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const FLAT=["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+const KEYNAMES=["C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
+const DEG={0:"1",1:"b2",2:"2",3:"b3",4:"3",5:"4",6:"b5",7:"5",8:"b6",9:"6",10:"b7",11:"7"};
+
+const R={qd:[.5,.25,.25],sl:[.5,.25,.25],sw:[.5,.25,.25,.125,.625],qdt:[1,.25,.25,1],skip:[.5,1,.25,.25,1]};
+const V={qd:[.85,.72,.64],sl:[.86,.8,.66],sw:[.86,.8,.74,.78,.82],qdt:[.84,.82,.8,.62],skip:[1,.82,.8,.8,.62]};
+function mkBlocks(steps){const o={};for(const k in steps)o[k]={n:steps[k],b:R[k],v:V[k]};return o}
+const SETS={
+  minor:{name:"minor pentatonic",tonic:64,scale:[0,3,5,7,10],minor:true,
+    blocks:mkBlocks({qd:[0,-1,-2],sl:[-2,-1,0],sw:[-2,-1,0,-1,0],qdt:[0,-1,-2,-3],skip:[1,0,-1,-2,-3]})},
+  blues:{name:"blues",tonic:64,scale:[0,3,5,7,10],minor:true,shapeSet:"minor",
+    blocks:Object.assign(mkBlocks({qd:[0,-1,-2],sl:[-2,-1,0],sw:[-2,-1,0,-1,0]}),{
+      qdt:{n:[0,-1,-2,[-3,1],-3],b:[1,.25,.25,.25,.25],v:[.84,.82,.8,.8,.62]},
+      skip:{n:[1,0,-1,-2,[-3,1],-3],b:[.5,1,.25,.25,.25,.75],v:[1,.82,.8,.8,.8,.62]}})},
+  major:{name:"major",tonic:60,scale:[0,2,4,5,7,9,11],minor:false,
+    blocks:mkBlocks({qd:[2,1,0],sl:[0,1,2],sw:[0,1,2,1,2],qdt:[2,1,0,-1],skip:[4,2,1,0,-1]})},
+  majpent:{name:"major pentatonic",tonic:57,scale:[0,2,4,7,9],minor:false,
+    blocks:mkBlocks({qd:[3,2,1],sl:[1,2,3],sw:[1,2,3,2,3],qdt:[3,2,1,0],skip:[4,3,2,1,0]})}
+};
+const BLOCKS={
+  qd:{name:"Quick Dip",num:1,c:"var(--pink)",on:"var(--ink)",rhythm:"long, short, short",
+    tip:"Three notes stepping down from home. Lean on the first note, then let the next two fall away quickly. She says any word or vowel works on it."},
+  sl:{name:"Swift Lift",num:2,c:"var(--blue)",on:"#fff",rhythm:"long, short, short",
+    tip:"This is the Quick Dip turned upside down, three notes climbing back home with the same long-short-short rhythm."},
+  sw:{name:"Swoopy Swift Lift",num:3,c:"var(--green)",on:"var(--ink)",rhythm:"long, short, short, flick, hold",
+    tip:"A Swift Lift with a small turn on top. Once you land, flick down one note and straight back up so the top note sounds twice, then hold it as long as you like."},
+  qdt:{name:"Quick Dip Trip",num:4,c:"var(--orange)",on:"var(--ink)",rhythm:"hold, short, short, land",
+    tip:"A Quick Dip with one more note at the bottom. The first note gets a full beat, and the landing note can be short or held."},
+  skip:{name:"Skip Quick Dip Trip",num:5,c:"var(--yellow)",on:"var(--ink)",rhythm:"accent, hold, short, short, land",
+    tip:"It starts above home and skips down to it, then runs the Quick Dip Trip. She sings that first note louder than the rest, which the accent mark shows."}
+};
+const ORDER=["qd","sl","sw","qdt","skip"];
+const COMBOS=[
+  {n:1,b:["qd","sl"],note:"Down, then straight back up. The shared bottom note gets sung twice, so re-attack it cleanly."},
+  {n:2,b:["qdt","sl"],note:"She says these two fit together snugly. The lift starts one step above where the trip lands."},
+  {n:3,b:["sl","qdt"],note:"The same two blocks in the other order: climb home, then fall past it."},
+  {n:4,b:["sw","qdt"],note:"Combo 3 with more flair on top, since the swoop sets up the long note."},
+  {n:5,b:["skip","sl"],note:"The skip opens it, and the lift brings you back home at the end."},
+  {n:6,b:["skip","sw"],note:"Her favorite of the set. She calls the shape two little stairs.",sticker:"her favorite"},
+  {n:7,b:["sl","skip"],note:"She swapped in the plain Swift Lift here because the swoopy version felt clunky in front of the skip."},
+  {n:8,b:["sl","skip","sw"],note:"All three chained, which she calls a melodic masterpiece. Learn combo 7 first.",sticker:"the big one"},
+  {n:null,b:["sw","skip"],note:"She plays this order to show a join that doesn't work. The two halves sound separate. Listen for the gap, then compare with combo 7.",sticker:"listen for the gap",stickerCls:"blue"}
+];
+
+/* settings */
+const st={set:"minor",key:4,tempo:70,cap:72,oct:0,mode:"echo",wItem:"r:qd",wLow:57,wHigh:72,wReps:4,wMode:"along",sound:"piano"};
+try{Object.assign(st,JSON.parse(localStorage.getItem("riff-blocks-settings"))||{})}catch(e){}
+function save(){try{localStorage.setItem("riff-blocks-settings",JSON.stringify(st))}catch(e){}}
+
+const keySel=$("#key");
+KEYNAMES.forEach((n,i)=>{const o=document.createElement("option");o.value=i;o.textContent=n;keySel.appendChild(o)});
+function syncInputs(){$("#set").value=st.set;keySel.value=st.key;$("#tempo").value=st.tempo;$("#tempoOut").textContent=st.tempo;
+  $("#cap").value=st.cap;$("#oct").value=st.oct;$("#mode").value=st.mode;$("#sound").value=st.sound;
+  $("#wItem").value=st.wItem;$("#wLow").value=st.wLow;$("#wHigh").value=st.wHigh;$("#wReps").value=st.wReps;$("#wMode").value=st.wMode}
+
+/* music helpers */
+const S=()=>SETS[st.set];
+function stepToMidi(set,step){const n=set.scale.length,oct=Math.floor(step/n),i=step-oct*n;return set.tonic+12*oct+set.scale[i]}
+function keyShift(){const set=S();let s=((st.key-set.tonic%12)+12)%12;if(s>6)s-=12;return s+(+st.oct)}
+function tonicPc(shift){return ((S().tonic+shift)%12+12)%12}
+function flats(shift){const pc=tonicPc(shift);return S().minor?[0,2,3,5,7,10].includes(pc):[0,1,3,5,8,10].includes(pc)}
+function pn(m,shift){return (flats(shift)?FLAT:SHARP)[((m%12)+12)%12]}
+function nn(m,shift){return pn(m,shift)+(Math.floor(m/12)-1)}
+function capName(){return SHARP[st.cap%12]+(Math.floor(st.cap/12)-1)}
+function deg(m,shift){return DEG[((m-(S().tonic+shift))%12+12)%12]}
+function keyLabel(shift){return (flats(shift)?FLAT:SHARP)[tonicPc(shift)]+" "+S().name}
+function notesFor(k,shift,stepShift=0,setKey=st.set){
+  const set=SETS[setKey],B=set.blocks[k];
+  return B.n.map((x,i)=>{const step=Array.isArray(x)?x[0]:x,ch=Array.isArray(x)?x[1]:0;
+    return {midi:stepToMidi(set,step+stepShift)+ch+shift,beats:B.b[i],vel:B.v[i],block:k,acc:k==="skip"&&i===0}});
+}
+const top=ns=>Math.max(...ns.map(n=>n.midi));
+
+/* staircase drawing */
+function renderStair(el,notes,shift){
+  el.innerHTML="";
+  if(!notes.length){el.style.height="0px";return}
+  const lo=Math.min(...notes.map(n=>n.midi)),hi=top(notes),acc=notes.some(n=>n.acc);
+  el.style.height=`calc(var(--step) * ${hi-lo} + ${acc?82:52}px)`;
+  notes.forEach(n=>{
+    const col=document.createElement("div");col.className="col";col.style.width=`calc(var(--beat) * ${n.beats})`;
+    const b=document.createElement("div");b.className="brick"+(n.acc?" acc":"");
+    b.style.setProperty("--c",BLOCKS[n.block].c);b.style.setProperty("--on",BLOCKS[n.block].on);
+    b.style.bottom=`calc(var(--step) * ${n.midi-lo} + 4px)`;b.textContent=pn(n.midi,shift);
+    b.title=nn(n.midi,shift);col.appendChild(b);el.appendChild(col);
+  });
+}
+
+/* ---------- audio ---------- */
+let ctx=null,master=null,runGain=null,runSampler=null,timers=[],running=null,lastPlan=null;
+const hz=m=>440*Math.pow(2,(m-69)/12);
+const HAS_TONE=typeof window.Tone!=="undefined";
+let pianoBuffers=null,pianoReady=false,pianoFailed=!HAS_TONE,pianoHits=0;
+const PIANO_URLS={};
+for(let m=33;m<=84;m+=3){const nm=SHARP[m%12]+(Math.floor(m/12)-1);PIANO_URLS[nm]=nm.replace("#","s")+".mp3"}
+function soundStatus(){
+  const el=$("#soundStatus");
+  if(st.sound==="synth"){el.textContent="Using the simple synth.";return}
+  el.textContent=pianoReady?"Grand piano loaded.":pianoFailed?"The grand piano didn't load, so the simple synth will play instead. Reloading the page usually fixes it.":"Loading the grand piano…";
+}
+function loadPiano(){
+  if(!HAS_TONE){soundStatus();return}
+  try{
+    pianoBuffers=new Tone.ToneAudioBuffers({urls:PIANO_URLS,baseUrl:"piano/",
+      onload:()=>{pianoReady=true;soundStatus()},onerror:()=>{pianoFailed=true;soundStatus()}});
+  }catch(e){pianoFailed=true;soundStatus()}
+}
+function ac(){
+  if(!ctx){
+    ctx=HAS_TONE?Tone.getContext().rawContext:new (window.AudioContext||window.webkitAudioContext)();
+    master=ctx.createGain();master.gain.value=.9;master.connect(ctx.destination);
+  }
+  if(HAS_TONE){Tone.start().catch(()=>{})}else if(ctx.state==="suspended")ctx.resume();
+  return ctx;
+}
+function makeSampler(out){
+  if(st.sound!=="piano"||!pianoReady)return null;
+  try{
+    const urls={};Object.keys(PIANO_URLS).forEach(k=>{urls[k]=pianoBuffers.get(k)});
+    const smp=new Tone.Sampler({urls,release:.7});smp.volume.value=-3;smp.connect(out);return smp;
+  }catch(e){return null}
+}
+function play(m,t,dur,vel,out){
+  if(runSampler){runSampler.triggerAttackRelease(Tone.Frequency(m,"midi").toNote(),Math.max(.05,dur),t,Math.min(1,vel));pianoHits++}
+  else pluck(m,t,dur,vel,out);
+}
+function strike(notes,t,dur,vel,out){notes.forEach((m,i)=>play(m,t+i*.025,dur,vel,out))}
+function pluck(m,t,dur,vel,out){
+  const o=ctx.createOscillator(),o2=ctx.createOscillator(),g=ctx.createGain(),g2=ctx.createGain();
+  o.type="triangle";o2.type="sine";o.frequency.value=hz(m);o2.frequency.value=hz(m)*2;g2.gain.value=.28;
+  const pk=.3*vel,dec=Math.min(dur,.22);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(pk,t+.012);
+  g.gain.exponentialRampToValueAtTime(pk*.5,t+Math.max(.02,dec));g.gain.setValueAtTime(pk*.5,t+Math.max(.021,dur));
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur+.16);
+  o.connect(g);o2.connect(g2);g2.connect(g);g.connect(out);
+  o.start(t);o2.start(t);o.stop(t+dur+.22);o2.stop(t+dur+.22);
+}
+function click(t,strong,out,soft){
+  const o=ctx.createOscillator(),g=ctx.createGain();o.type="square";o.frequency.value=strong?1650:1150;
+  const pk=soft?(strong?.035:.02):(strong?.08:.05);
+  g.gain.setValueAtTime(pk,t);g.gain.exponentialRampToValueAtTime(.0001,t+.03);o.connect(g);g.connect(out);o.start(t);o.stop(t+.04);
+}
+function drone(t0,t1,notes,out){
+  const lvl=notes.length>2?.028:.05;
+  notes.forEach(m=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=hz(m);
+    g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(lvl,t0+.25);g.gain.setValueAtTime(lvl,Math.max(t0+.26,t1-.3));
+    g.gain.exponentialRampToValueAtTime(.0001,t1);o.connect(g);g.connect(out);o.start(t0);o.stop(t1+.05)});
+}
+function clearHits(){document.querySelectorAll(".brick.hit").forEach(b=>b.classList.remove("hit"))}
+function hit(el,i,on){const b=el&&el.querySelectorAll(".brick")[i];if(b)b.classList.toggle("hit",on)}
+
+const bar=$("#bar");
+function status(main,detail,turn){$("#bState").textContent=main;$("#bDetail").textContent=detail||"";bar.classList.toggle("turn",!!turn)}
+function barMode(m){$("#bRun").hidden=m!=="run";$("#bRate").hidden=m!=="rate";$("#bBump").hidden=m!=="bump";bar.hidden=m==="off"}
+
+let pumpTimer=null;
+function run(plan){
+  stopRun(false);ac();
+  runGain=ctx.createGain();runGain.connect(master);
+  runSampler=makeSampler(runGain);
+  const g=runGain;let t=ctx.currentTime+.2;
+  const at=(time,fn)=>timers.push(setTimeout(fn,Math.max(0,(time-ctx.currentTime)*1000)));
+  running=plan;barMode("run");
+  const b0=60/plan.reps[0].tempo;
+  for(let i=0;i<4;i++){click(t+i*b0,i===0,g);at(t+i*b0,()=>status("Count-in",`${i+1} of 4 · ${plan.title}`))}
+  t+=4*b0;
+  const slots=[];
+  plan.reps.forEach((rep,ri)=>{
+    const b=60/rep.tempo,len=rep.notes.reduce((s,n)=>s+n.beats,0),barB=Math.max(4,Math.ceil(len/4-1e-6)*4);
+    const total=barB*(rep.echo?2:1);slots.push({rep,ri,t,b,barB,total});t+=total*b;
+  });
+  const end=t;
+  function schedule({rep,ri,t,b,barB,total}){
+    const pad=rep.pad||[rep.tonic-12,rep.tonic-5];
+    if(runSampler){
+      if(!rep.chord){strike(pad,t,barB*b*.95,.22,g);if(rep.echo)strike(pad,t+barB*b,barB*b*.95,.2,g)}
+    }else drone(t,t+total*b,pad,g);
+    for(let k=0;k<total;k++)click(t+k*b,k%4===0,g,true);
+    const roundTxt=plan.noCount?rep.label:`Round ${ri+1} of ${plan.reps.length} · ${rep.label}`;
+    if(rep.chord){
+      strike(rep.chord,t,total*b*.95,.55,g);
+      at(t,()=>{if(rep.onStart)rep.onStart();status("New key",roundTxt)});return;
+    }
+    at(t,()=>{if(rep.onStart)rep.onStart();status(rep.echo||rep.solo?"Listen":"Sing along",roundTxt)});
+    let nt=t;
+    rep.notes.forEach((n,i)=>{const d=n.beats*b;
+      play(n.midi,nt,rep.staccato?Math.min(d*.5,.15):d*.92,n.vel,g);
+      at(nt,()=>hit(rep.target,i,true));at(nt+d*.85,()=>hit(rep.target,i,false));nt+=d});
+    if(rep.echo)at(t+barB*b,()=>status("Your turn",rep.syll?`Sing it back on ${rep.syll} · ${roundTxt}`:`Sing it back · ${roundTxt}`,true));
+  }
+  let idx=0;
+  const pump=()=>{while(idx<slots.length&&slots[idx].t<ctx.currentTime+2.5){schedule(slots[idx]);idx++}};
+  pump();pumpTimer=setInterval(pump,250);
+  at(end+.05,finish);
+}
+function finish(){
+  clearInterval(pumpTimer);pumpTimer=null;timers=[];clearHits();const p=running;running=null;
+  if(p&&p.after)p.after();
+  if(runGain){const g=runGain,smp=runSampler;setTimeout(()=>{g.disconnect();if(smp)smp.dispose()},2500);runGain=null;runSampler=null}
+  lastPlan=p;status("How did that go?",p?p.title:"",false);barMode("rate");
+}
+function stopRun(user){
+  clearInterval(pumpTimer);pumpTimer=null;timers.forEach(clearTimeout);timers=[];clearHits();
+  if(runGain&&ctx){const g=runGain,smp=runSampler;g.gain.setTargetAtTime(0,ctx.currentTime,.02);setTimeout(()=>{g.disconnect();if(smp)smp.dispose()},300);runGain=null;runSampler=null}
+  if(running&&running.after)running.after();
+  running=null;if(user)barMode("off");
+}
+$("#bStop").onclick=()=>stopRun(true);
+$("#bSkip").onclick=()=>barMode("off");
+$("#bDone").onclick=()=>barMode("off");
+document.querySelectorAll("#bRate [data-r]").forEach(btn=>btn.onclick=()=>{
+  const r=btn.dataset.r;if(lastPlan)addLog(lastPlan,r);
+  if(r==="Clean"&&st.tempo<100&&lastPlan&&lastPlan.bumpable){
+    const nt=Math.min(120,st.tempo+5);$("#bumpBtn").textContent=`Set tempo to ${nt}`;$("#bumpBtn").dataset.t=nt;
+    status("Logged. Clean.","Ready for a little more speed?");barMode("bump");
+  }else barMode("off");
+});
+$("#bumpBtn").onclick=e=>{st.tempo=+e.currentTarget.dataset.t;save();syncInputs();refresh();barMode("off")};
+
+/* ---------- plans ---------- */
+function rep(notes,tempo,o={}){
+  return {notes,tempo,echo:o.solo?false:(st.mode==="echo"),solo:!!o.solo,staccato:!!o.stacc,target:o.target,tonic:o.tonic,
+    label:o.label||"",syll:o.syll,onStart:o.onStart};
+}
+function slowT(){return Math.max(40,Math.round(st.tempo*.6))}
+function ladderPlan(k,step){
+  const sh=keyShift(),T=st.tempo,slow=slowT(),m=BLOCKS[k],tgt=document.querySelector(`#riff-${k} .stair`);
+  const base=notesFor(k,sh),tonic=S().tonic+sh,o={target:tgt,tonic};
+  let reps=[],title="",bumpable=false,after=null;
+  if(step===1){title=`${m.name}: listen`;reps=[rep(base,T,{...o,solo:true,label:`${T} bpm`}),rep(base,T,{...o,solo:true,label:`${T} bpm`})]}
+  if(step===2){title=`${m.name}: detached`;bumpable=false;
+    for(let i=0;i<4;i++)reps.push(rep(base,slow,{...o,stacc:true,syll:"“hee”",label:`detached, ${slow} bpm`}))}
+  if(step===3){title=`${m.name}: smooth`;
+    for(let i=0;i<4;i++)reps.push(rep(base,slow,{...o,syll:"“ah”",label:`smooth, ${slow} bpm`}))}
+  if(step===4){title=`${m.name}: speed up`;bumpable=true;
+    const goal=Math.max(T,100);for(let i=0;i<4;i++){const tt=Math.round(T+(goal-T)*i/3);reps.push(rep(base,tt,{...o,syll:"“ah”",label:`${tt} bpm`}))}}
+  if(step===5){title=`${m.name}: key walk`;bumpable=true;
+    const shifts=[sh];let s=sh;while(top(notesFor(k,s+1))<=st.cap&&shifts.length<9){s++;shifts.push(s)}
+    for(let x=s-1;x>=sh;x--)shifts.push(x);
+    reps=shifts.map(x=>rep(notesFor(k,x),T,{target:tgt,tonic:S().tonic+x,syll:"“ah”",label:`key of ${keyLabel(x).split(" ")[0]}`,onStart:()=>drawRiff(k,x)}));
+    after=()=>drawRiff(k,keyShift());}
+  const tempos=[...new Set(reps.map(r=>r.tempo))];
+  return {title,reps,bumpable,after,keyText:keyLabel(sh),tempoText:tempos.length>1?`${tempos[0]} to ${tempos[tempos.length-1]} bpm`:`${tempos[0]} bpm`};
+}
+
+/* ---------- riffs ---------- */
+const STEPS=[
+  ["Listen","The piano plays it twice. Just listen."],
+  ["Detached","On “hee,” every note separate, slow."],
+  ["Smooth","On “ah,” notes connected, same slow speed."],
+  ["Speed up","Four rounds climbing toward 100 bpm."],
+  ["Key walk","Up a half step each round to your top note, then back down."]
+];
+function buildRiffs(){
+  const list=$("#riffList");
+  ORDER.forEach(k=>{
+    const m=BLOCKS[k],a=document.createElement("article");a.className="panel taped riff";a.id="riff-"+k;
+    a.style.setProperty("--c",m.c);
+    a.innerHTML=`<div class="riff-head"><span class="num" aria-hidden="true">${m.num}</span><h3>${m.name}</h3></div>
+      <div class="stair-wrap"><div class="stair"></div></div>
+      <dl class="facts"><div><dt>Notes</dt><dd class="f-notes"></dd></div><div><dt>Scale steps</dt><dd class="f-degs"></dd></div><div><dt>Rhythm</dt><dd>${m.rhythm}</dd></div></dl>
+      <p class="tip">${m.tip}</p>
+      <ol class="ladder">${STEPS.map((s,i)=>`<li><button type="button" class="step" data-step="${i+1}"><span class="n">${i+1}</span><b>${s[0]}</b><span class="d">${s[1]}</span></button></li>`).join("")}</ol>`;
+    a.querySelectorAll(".step").forEach(b=>b.onclick=()=>run(ladderPlan(k,+b.dataset.step)));
+    list.appendChild(a);
+  });
+}
+function drawRiff(k,shift){
+  const a=$("#riff-"+k),ns=notesFor(k,shift);
+  renderStair(a.querySelector(".stair"),ns,shift);
+  a.querySelector(".f-notes").textContent=ns.map(n=>nn(n.midi,shift)).join(" ");
+  a.querySelector(".f-degs").textContent=ns.map(n=>deg(n.midi,shift)).join(" ");
+  const d=a.querySelector('[data-step="2"] .d'),d3=a.querySelector('[data-step="3"] .d');
+  d.textContent=`On “hee,” every note separate, at ${slowT()} bpm.`;d3.textContent=`On “ah,” notes connected, at ${slowT()} bpm.`;
+}
+
+/* ---------- shapes ---------- */
+let shape="qd";
+const SHAPES=["qd","sl","sw","qdt"];
+function shapeSetKey(){return S().shapeSet||st.set}
+function positions(){return SETS[shapeSetKey()].scale.length===5?[-2,-1,0,1,2]:[-3,-2,-1,0,1,2,3]}
+function buildShapeChips(){
+  const c=$("#shapeChips");c.innerHTML="";
+  SHAPES.forEach(k=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=BLOCKS[k].name;
+    b.style.setProperty("--c",BLOCKS[k].c);b.setAttribute("aria-pressed",k===shape);
+    b.onclick=()=>{shape=k;buildShapeChips();drawShapes()};c.appendChild(b)});
+}
+function drawShapes(){
+  const g=$("#shapeGrid"),sh=keyShift();g.innerHTML="";
+  positions().forEach(p=>{
+    const ns=notesFor(shape,sh,p,shapeSetKey()),f=ns[0];
+    const d=document.createElement("div");d.className="mini";
+    d.innerHTML=`${p===0?'<span class="sticker">home position</span>':""}<h3>Starts on ${deg(f.midi,sh)} (${nn(f.midi,sh)})</h3>
+      <div class="stair-wrap"><div class="stair"></div></div><div class="row"><button class="btn" type="button">Echo twice</button></div>`;
+    renderStair(d.querySelector(".stair"),ns,sh);
+    d.querySelector("button").onclick=()=>{const tg=d.querySelector(".stair"),o={target:tg,tonic:S().tonic+sh,label:`starts on ${deg(f.midi,sh)}`,syll:"“ah”"};
+      run({title:`${BLOCKS[shape].name} from ${deg(f.midi,sh)}`,reps:[rep(ns,st.tempo,o),rep(ns,st.tempo,o)],bumpable:true,keyText:keyLabel(sh),tempoText:`${st.tempo} bpm`})};
+    g.appendChild(d);
+  });
+}
+$("#shapeAll").onclick=()=>{
+  const sh=keyShift(),minis=[...document.querySelectorAll("#shapeGrid .stair")];
+  const reps=positions().map((p,i)=>{const ns=notesFor(shape,sh,p,shapeSetKey());
+    return rep(ns,st.tempo,{target:minis[i],tonic:S().tonic+sh,label:`starts on ${deg(ns[0].midi,sh)}`,syll:"“ah”"})});
+  run({title:`${BLOCKS[shape].name}, every position`,reps,bumpable:true,keyText:keyLabel(sh),tempoText:`${st.tempo} bpm`});
+};
+
+/* ---------- combos ---------- */
+function comboNotes(blocks,sh){return blocks.flatMap(b=>notesFor(b,sh))}
+function comboName(b){return b.map(x=>BLOCKS[x].name).join(" + ")}
+function legend(blocks){return `<div class="legend">${[...new Set(blocks)].map(b=>`<span style="--c:${BLOCKS[b].c}"><i></i>${BLOCKS[b].name}</span>`).join("")}</div>`}
+function comboPlan(blocks,kind,tgt,label){
+  const sh=keyShift(),ns=comboNotes(blocks,sh),o={target:tgt,tonic:S().tonic+sh},slow=slowT();let reps=[];
+  if(kind==="listen")reps=[rep(ns,st.tempo,{...o,solo:true,label:`${st.tempo} bpm`})];
+  if(kind==="slow")for(let i=0;i<4;i++)reps.push(rep(ns,slow,{...o,syll:"“ah”",label:`slow, ${slow} bpm`}));
+  if(kind==="echo")for(let i=0;i<4;i++)reps.push(rep(ns,st.tempo,{...o,syll:"“ah”",label:`${st.tempo} bpm`}));
+  const tp=reps[0].tempo;
+  return {title:`${label}: ${kind==="listen"?"listen":kind==="slow"?"slow echo":"echo"}`,reps,bumpable:kind!=="listen",keyText:keyLabel(sh),tempoText:`${tp} bpm`};
+}
+function buildCombos(){
+  const list=$("#comboList");list.innerHTML="";
+  COMBOS.forEach(c=>{
+    const a=document.createElement("article");a.className="panel combo";
+    const kicker=c.n?`Combo ${c.n}`:"Honorable mention";const label=c.n?`Combo ${c.n}`:"Honorable mention";
+    a.innerHTML=`${c.sticker?`<span class="sticker ${c.stickerCls||""}">${c.sticker}</span>`:""}
+      <p class="kicker">${kicker}</p><h3>${comboName(c.b)}</h3><p class="note">${c.note}</p>${legend(c.b)}
+      <div class="stair-wrap"><div class="stair"></div></div>
+      <div class="row"><button class="btn" type="button" data-k="listen">Listen</button><button class="btn" type="button" data-k="slow">Slow ×4</button><button class="btn pri" type="button" data-k="echo">Echo ×4</button></div>`;
+    const tg=a.querySelector(".stair");
+    a.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>run(comboPlan(c.b,b.dataset.k,tg,label)));
+    a.dataset.blocks=c.b.join(",");list.appendChild(a);
+  });
+}
+function drawCombos(){const sh=keyShift();document.querySelectorAll("#comboList .combo").forEach(a=>renderStair(a.querySelector(".stair"),comboNotes(a.dataset.blocks.split(","),sh),sh))}
+
+/* builder */
+let chain=[];
+function buildBuilder(){
+  const c=$("#buildChips");
+  ORDER.forEach(k=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent="+ "+BLOCKS[k].name;
+    b.style.setProperty("--c",BLOCKS[k].c);b.style.background=BLOCKS[k].c;b.style.color=BLOCKS[k].on;
+    b.onclick=()=>{if(chain.length<6){chain.push(k);drawBuilder()}};c.appendChild(b)});
+  $("#bUndo").onclick=()=>{chain.pop();drawBuilder()};
+  $("#bClear").onclick=()=>{chain=[];drawBuilder()};
+  $("#bListen").onclick=()=>chain.length&&run(comboPlan(chain,"listen",$("#buildStair"),"Your chain"));
+  $("#bEcho").onclick=()=>chain.length&&run(comboPlan(chain,"echo",$("#buildStair"),"Your chain"));
+}
+function drawBuilder(){
+  const sh=keyShift();renderStair($("#buildStair"),comboNotes(chain,sh),sh);
+  $("#buildEmpty").hidden=chain.length>0;$("#buildStair").parentElement.hidden=!chain.length;
+  ["#bListen","#bEcho","#bUndo","#bClear"].forEach(s=>$(s).disabled=!chain.length);
+}
+
+/* ---------- log ---------- */
+const LOGKEY="riff-blocks-log";
+let log=[];try{log=JSON.parse(localStorage.getItem(LOGKEY))||[]}catch(e){log=[]}
+function addLog(p,r){
+  log.unshift({when:new Date().toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}),what:p.title,key:p.keyText,tempo:p.tempoText,r});
+  log=log.slice(0,60);try{localStorage.setItem(LOGKEY,JSON.stringify(log))}catch(e){}renderLog();
+}
+function renderLog(){
+  const ol=$("#logList");ol.innerHTML="";$("#logEmpty").hidden=log.length>0;
+  log.forEach(e=>{const li=document.createElement("li");
+    li.innerHTML=`<span class="rate-chip ${e.r}"></span><strong></strong><span></span>`;
+    li.children[0].textContent=e.r;li.children[1].textContent=e.what;li.children[2].textContent=`${e.key}, ${e.tempo} · ${e.when}`;ol.appendChild(li)});
+}
+let armed=false;
+$("#clearLog").onclick=e=>{const b=e.currentTarget;
+  if(!armed){armed=true;b.textContent="Tap again to clear";setTimeout(()=>{armed=false;b.textContent="Clear log"},3000);return}
+  armed=false;b.textContent="Clear log";log=[];try{localStorage.setItem(LOGKEY,"[]")}catch(x){}renderLog()};
+
+/* ---------- key walk ---------- */
+const CHORDS={minor:[[0,7,10,15,17],"minor 11"],blues:[[0,7,10,15,17],"minor 11"],major:[[0,7,11,14,16],"major 9"],majpent:[[0,7,9,14,16],"6/9"]};
+function chordFor(shift){
+  let bass=S().tonic+shift-24;while(bass<33)bass+=12;
+  const [iv,suf]=CHORDS[st.set];
+  return {notes:iv.map(x=>bass+x),name:(flats(shift)?FLAT:SHARP)[tonicPc(shift)]+" "+suf};
+}
+function walkItemNotes(shift){
+  const [kind,id]=st.wItem.split(":");
+  return kind==="r"?notesFor(id,shift):comboNotes(COMBOS[+id].b,shift);
+}
+function walkItemName(){
+  const [kind,id]=st.wItem.split(":");
+  if(kind==="r")return BLOCKS[id].name;const c=COMBOS[+id];return (c.n?`Combo ${c.n}`:"Honorable mention")+": "+comboName(c.b);
+}
+const pitchName=m=>SHARP[m%12]+(Math.floor(m/12)-1);
+function walkShifts(){
+  const ns=walkItemNotes(0),lo=Math.min(...ns.map(n=>n.midi)),hi=top(ns);
+  const s0=st.wLow-lo,s1=Math.min(st.wHigh-hi,s0+24);
+  return {s0,s1,lo,hi,ok:s1>=s0};
+}
+function buildWalk(){
+  const it=$("#wItem");
+  const g1=document.createElement("optgroup");g1.label="The five riffs";
+  ORDER.forEach(k=>{const o=document.createElement("option");o.value="r:"+k;o.textContent=BLOCKS[k].name;g1.appendChild(o)});
+  const g2=document.createElement("optgroup");g2.label="Combos";
+  COMBOS.forEach((c,i)=>{const o=document.createElement("option");o.value="c:"+i;o.textContent=(c.n?`Combo ${c.n}: `:"Honorable mention: ")+comboName(c.b);g2.appendChild(o)});
+  it.append(g1,g2);
+  ["#wLow","#wHigh"].forEach(id=>{const sel=$(id);for(let m=36;m<=84;m++){const o=document.createElement("option");o.value=m;o.textContent=pitchName(m);sel.appendChild(o)}});
+  $("#wStart").onclick=startWalk;
+}
+function drawWalk(){
+  const w=walkShifts(),sum=$("#wSummary"),keys=$("#wKeys"),btn=$("#wStart");
+  keys.innerHTML="";
+  if(!w.ok){
+    renderStair($("#wStair"),walkItemNotes(0),0);
+    sum.className="hint warn";
+    sum.textContent=`This one spans ${w.hi-w.lo} half steps, so it needs at least that much room between your lowest and highest notes. Widen the range to start.`;
+    btn.disabled=true;return;
+  }
+  btn.disabled=false;sum.className="hint";
+  renderStair($("#wStair"),walkItemNotes(w.s0),w.s0);
+  for(let s=w.s0;s<=w.s1;s++){const c=document.createElement("span");c.className="kchip";c.style.marginBottom=`${(s-w.s0)*5}px`;
+    c.textContent=(flats(s)?FLAT:SHARP)[tonicPc(s)];c.dataset.s=s;keys.appendChild(c)}
+  const up=w.s1-w.s0+1,nKeys=up*2-1;
+  const len=walkItemNotes(0).reduce((a,n)=>a+n.beats,0),barB=Math.max(4,Math.ceil(len/4-1e-6)*4);
+  const beats=nKeys*(4+st.wReps*barB*(st.wMode==="echo"?2:1))+4;
+  const mins=Math.max(1,Math.round(beats*60/st.tempo/60));
+  sum.textContent=`${up} key${up>1?"s":""} up, from ${chordFor(w.s0).name} to ${chordFor(w.s1).name}, then back down. That's ${nKeys} keys in about ${mins} minute${mins>1?"s":""} at ${st.tempo} bpm.`;
+}
+function markKey(s,dir){
+  document.querySelectorAll("#wKeys .kchip").forEach(c=>{const v=+c.dataset.s;c.classList.toggle("on",v===s);
+    c.classList.toggle("done",dir==="up"?v<s:v>s)});
+}
+function startWalk(){
+  const w=walkShifts();if(!w.ok)return;
+  const path=[];for(let s=w.s0;s<=w.s1;s++)path.push([s,"up"]);for(let s=w.s1-1;s>=w.s0;s--)path.push([s,"down"]);
+  const tgt=$("#wStair"),reps=[];
+  path.forEach(([s,dir],ki)=>{
+    const ch=chordFor(s),ns=walkItemNotes(s),tonic=S().tonic+s,where=`key ${ki+1} of ${path.length}, going ${dir}`;
+    reps.push({notes:[],tempo:st.tempo,echo:false,chord:ch.notes,pad:ch.notes.slice(1),tonic,
+      label:`${ch.name} · ${where}`,onStart:()=>{renderStair(tgt,ns,s);markKey(s,dir)}});
+    for(let j=0;j<st.wReps;j++){const r=rep(ns,st.tempo,{target:tgt,tonic,syll:"“ah”",label:`${ch.name} · ${j+1} of ${st.wReps} · ${where}`});
+      r.echo=st.wMode==="echo";r.pad=ch.notes.slice(1);reps.push(r)}
+  });
+  run({title:`Key walk: ${walkItemName()}`,reps,noCount:true,bumpable:true,after:()=>drawWalk(),
+    keyText:`${pitchName(st.wLow)} to ${pitchName(st.wHigh)}`,tempoText:`${st.tempo} bpm`});
+}
+
+/* ---------- hint + refresh ---------- */
+function drawHint(){
+  const sh=keyShift(),hs=top(notesFor("skip",sh)),need=st.cap-hs;
+  const el=$("#targetHint");
+  if(need<0){el.textContent=`In ${keyLabel(sh)}, the Skip Quick Dip Trip already starts above ${capName()}. Pick a lower key or a higher top note.`;return}
+  if(need===0){el.textContent=`In ${keyLabel(sh)}, the Skip Quick Dip Trip starts right on ${capName()}, your top note today.`;return}
+  el.textContent=`Your top note today is ${capName()}. The Skip Quick Dip Trip starts on it in ${keyLabel(sh+need)}, ${need} half step${need>1?"s":""} above your key, which is where its key walk tops out.`;
+}
+function refresh(){const sh=keyShift();ORDER.forEach(k=>drawRiff(k,sh));drawShapes();drawCombos();drawBuilder();drawHint();drawWalk();soundStatus()}
+
+function bind(id,key,num){$(id).addEventListener(id==="#tempo"?"input":"change",e=>{st[key]=num?+e.target.value:e.target.value;
+  if(id==="#tempo")$("#tempoOut").textContent=st.tempo;save();if(running)stopRun(true);refresh()})}
+bind("#set","set");bind("#key","key",true);bind("#tempo","tempo",true);bind("#cap","cap",true);bind("#oct","oct",true);bind("#mode","mode");bind("#sound","sound");bind("#wItem","wItem");bind("#wLow","wLow",true);bind("#wHigh","wHigh",true);bind("#wReps","wReps",true);bind("#wMode","wMode");
+
+loadPiano();buildWalk();syncInputs();buildRiffs();buildShapeChips();buildCombos();buildBuilder();renderLog();refresh();
+})();
+</script>
+</body>
+</html>
