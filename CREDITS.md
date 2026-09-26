@@ -21,3 +21,13 @@ Salamander Grand Piano by Alexander Holm, licensed [CC BY 3.0](https://creativec
 - Permanent Marker, Apache License 2.0 (`fonts/LICENSE-PermanentMarker.txt`)
 
 The font files are the Latin subsets served by Google Fonts, bundled here so the page loads where Google Fonts is blocked.
+
+## Progressions and theory
+- David Bennett Music Theory, chord progression videos: https://www.youtube.com/playlist?list=PLlx2eo2tD6KpfGmE-MXwcIRQh21neAKsK
+- Open Music Theory, Blues-Based Schemas (double plagal, extended plagal)
+- Tunable: I–IV–V–IV and I–♭VII–I blues rock progressions
+- Premier Guitar, "Alternate Pentatonics" (minor pentatonic a 5th and a 6th above a dominant 7)
+
+## Practice methods
+- 30 Day Singer, "How To Practice Riffs & Runs"
+- HVS Conservatory, "How to Do Vocal Runs"
