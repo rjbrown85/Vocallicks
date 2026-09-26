@@ -2,7 +2,7 @@
 
 A practice app for singing R&B riffs, built around the five riff "building blocks" from Crystal Cherelle's lesson at Indie Artist School. It runs in any browser as a single page, with no build step and nothing to install.
 
-**Live app:** turn on GitHub Pages (see below) and it lives at `https://<your-username>.github.io/vocallicks/`.
+**Live app:** [rjbrown85.github.io/Vocallicks](https://rjbrown85.github.io/Vocallicks/)
 
 ## What it does
 
@@ -30,7 +30,7 @@ Then visit `http://localhost:8000`. Opening `index.html` straight from Finder al
 1. In the repository on GitHub, open **Settings → Pages**.
 2. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
 3. Choose the `main` branch and the `/ (root)` folder, then save.
-4. After a minute or two the site appears at `https://<your-username>.github.io/vocallicks/`.
+4. After a minute or two the site appears at `https://<your-username>.github.io/Vocallicks/`. The path matches the repository name exactly, capital V included.
 
 On a free GitHub account, Pages only works for public repositories.
 
