@@ -1,4 +1,4 @@
-/* Chapter 03: Vocabulary. New riff patterns plus a workbench of practice methods. */
+/* Chapter 01: Riffs, second half. The workbench, new licks, and scale runs. */
 (function () {
   const VL = window.VL, st = VL.st, $ = VL.$, T = VL.theory, D = VL.data;
   const mod = T.mod;
@@ -154,7 +154,7 @@
 
   VL.vocab = {
     init() { buildCards(); buildBench(); draw(); VL.onSettings(draw); },
-    run(id, method) { VL.go("vocab"); st.vItem = id; st.vMethod = method; VL.changed(); setTimeout(() => VL.audio.runReps(methodPlan(itemById(id), method, $("#vStair"))), 50); },
+    run(id, method) { VL.go("riffs"); setTimeout(() => $("#bench").scrollIntoView({ block: "start" }), 30); st.vItem = id; st.vMethod = method; VL.changed(); setTimeout(() => VL.audio.runReps(methodPlan(itemById(id), method, $("#vStair"))), 50); },
     itemName: id => { try { return itemById(id).name; } catch (e) { return id; } }
   };
 })();

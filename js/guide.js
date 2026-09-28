@@ -11,8 +11,8 @@
       { id: "g-runs", title: "How a run works", body: `
         <p>Every drill opens with a count-in. With Tight spacing that's two clicks, and Roomy gives you the original four. Changes always counts a full bar, since the band needs a bar to settle into its groove.</p>
         <p>A tight round lasts as long as the riff plus one beat of air, rounded up to a whole beat, so a Quick Dip takes two beats instead of a full bar. In echo rounds you get the same stretch of time to sing it back. Roomy keeps every round on whole 4/4 bars, which helps when a riff is brand new and you want time to reset. The key walk's chord takes two beats with Tight spacing and a full bar with Roomy.</p>
-        <p>When a run ends, rate it Clean, Almost, or Messy. Ratings feed the log, the Progress table, and the ladder step the daily routine picks. A Clean rating below 100 bpm offers a five-bpm bump. The Next button starts the following step right away: the next ladder step in Blocks, the next method in the workbench, or the next item in today's routine.</p>
-        <p>Your lowest and highest notes in Setup decide where Changes and Vocabulary place every riff. Setup's riff key and scale drive Blocks and Vocabulary, while Changes has its own song key.</p>` },
+        <p>When a run ends, rate it Clean, Almost, or Messy. Ratings feed the log, the Progress table, and the ladder step the daily routine picks. A Clean rating below 100 bpm offers a five-bpm bump. The Next button starts the following step right away: the next ladder step for her five riffs, the next method in the workbench, or the next item in today's routine.</p>
+        <p>Everything you can adjust lives in the one Setup drawer. Your lowest and highest notes decide where every riff sits. The riff key and scale drive the Riffs chapter, while the band settings (progression, song key, style, and your part) drive Changes.</p>` },
 
       { id: "g-riffs", title: "The five riffs", body: `
         <p>Crystal Cherelle's five building blocks all start from the same home note, and each one has a five-step ladder. Her demo tempo is 100 bpm, so the speed-up step climbs from your tempo toward that.</p>

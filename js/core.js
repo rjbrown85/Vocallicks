@@ -12,7 +12,7 @@
     set: "minor", key: 4, tempo: 70, cap: 72, low: 52, oct: 0, mode: "echo", sound: "piano", spacing: "tight",
     wItem: "r:qd", wLow: 57, wHigh: 72, wReps: 4, wMode: "along",
     cProg: "axis", cKey: 7, cStyle: "rnb", cBars: 1, cLoops: 4, cMode: "listen", cApproach: "key", cFlavor: "sweet", cRiff: "qd", cPlace: "every", cSource: "auto",
-    vItem: "v:cas3", vMethod: "doo", sLen: 15, chapter: "blocks"
+    vItem: "v:cas3", vMethod: "doo", sLen: 15, chapter: "riffs"
   };
   const st = VL.st = Object.assign({}, DEF);
   try {
@@ -22,7 +22,9 @@
   VL.save = () => { try { localStorage.setItem("vocallicks-settings", JSON.stringify(st)); } catch (e) {} };
   const subs = [];
   VL.onSettings = fn => subs.push(fn);
-  VL.changed = () => { VL.save(); subs.forEach(f => { try { f(); } catch (e) { console.error(e); } }); };
+  VL.changed = () => { VL.save(); subs.forEach(f => { try { f(); } catch (e) { console.error(e); } }); VL.titleSelects(); };
+  /* hovering any dropdown shows its full current choice, even if the box is narrow */
+  VL.titleSelects = () => document.querySelectorAll("select").forEach(s => { const o = s.options[s.selectedIndex]; s.title = o ? o.textContent : ""; });
 
   /* ---------- log (shared by every chapter) ---------- */
   const LOGKEY = "riff-blocks-log";
@@ -83,9 +85,11 @@
   };
 
   /* ---------- router ---------- */
-  const CHAPTERS = ["blocks", "changes", "vocab", "session", "guide"];
+  const CHAPTERS = ["riffs", "changes", "session", "guide"];
+  const ALIAS = { blocks: "riffs", vocab: "riffs" };   // v1-v4 chapter names still in old links and saved settings
   VL.go = function (ch, push) {
-    if (!CHAPTERS.includes(ch)) ch = "blocks";
+    ch = ALIAS[ch] || ch;
+    if (!CHAPTERS.includes(ch)) ch = "riffs";
     CHAPTERS.forEach(c => { const el = $("#ch-" + c); if (el) el.hidden = c !== ch; });
     $$(".chapnav [data-ch]").forEach(b => b.setAttribute("aria-current", b.dataset.ch === ch ? "page" : "false"));
     document.body.dataset.chapter = ch;
@@ -93,14 +97,16 @@
     if (push !== false) { try { history.replaceState(null, "", "#" + ch); } catch (e) { location.hash = ch; } }
     window.scrollTo({ top: 0 });
     (VL.onShow[ch] || []).forEach(f => f());
+    if (VL.drawSummary) VL.drawSummary();
   };
   VL.onShow = {};
   VL.whenShown = (ch, fn) => (VL.onShow[ch] = VL.onShow[ch] || []).push(fn);
   VL.initRouter = function () {
     $$(".chapnav [data-ch]").forEach(b => b.onclick = () => VL.go(b.dataset.ch));
     const h = (location.hash || "").slice(1);
-    VL.go(CHAPTERS.includes(h) ? h : st.chapter, false);
-    window.addEventListener("hashchange", () => { const x = location.hash.slice(1); if (CHAPTERS.includes(x)) VL.go(x, false); });
+    const known = x => CHAPTERS.includes(ALIAS[x] || x);
+    VL.go(known(h) ? h : st.chapter, false);
+    window.addEventListener("hashchange", () => { const x = location.hash.slice(1); if (known(x)) VL.go(x, false); });
   };
 
   /* ---------- small UI helpers ---------- */

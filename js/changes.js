@@ -224,6 +224,7 @@
     $("#cSummary").innerHTML = `<b>${C.prog.chords.map(x => T.parseNumeral(x).text).join(" – ")}</b> in ${T.spell(st.cKey, fl)} ${T.TONALITY[C.prog.tonality].label} · ${VL.esc(C.style.name)} · ${VL.esc(scaleTxt)}`;
     $("#cFlavorWrap").hidden = st.cApproach === "key";
     $("#pbEdit").hidden = !C.prog.custom;
+    $("#cProgNote").textContent = `${C.prog.chords.map(x => T.parseNumeral(x).text).join(" – ")} · ${T.TONALITY[C.prog.tonality].label}${C.prog.src ? "" : " · yours"}`;
     const mine = st.cSource === "mine";
     $("#cRiffWrap").hidden = mine; $("#cPlaceWrap").hidden = mine; $("#arranger").hidden = !mine; $("#aBelow").hidden = !mine; $("#cToMine").hidden = mine;
 
@@ -657,9 +658,11 @@
       closeBuilder(); current = 0; selItem = null; VL.changed();
     };
   }
+  /* "Axis · I–V–vi–IV"; long forms show a chord count so the name never gets cut off */
+  const progLabel = p => p.name;
   function buildProgSelect() {
     const groups = [...new Set(D.PROGRESSIONS.map(p => p.group))];
-    VL.select($("#cProg"), groups.map(g => ({ group: g, items: D.PROGRESSIONS.filter(p => p.group === g).map(p => ({ value: p.id, label: `${p.name} (${p.chords.map(x => T.parseNumeral(x).text).join("–")})` })) })), st.cProg);
+    VL.select($("#cProg"), groups.map(g => ({ group: g, items: D.PROGRESSIONS.filter(p => p.group === g).map(p => ({ value: p.id, label: progLabel(p) })) })), st.cProg);
   }
 
   /* ---------- controls ---------- */
@@ -669,12 +672,16 @@
     buildProgSelect();
     VL.select($("#cKey"), T.KEYNAMES.map((k, i) => ({ value: i, label: k })), st.cKey);
     VL.select($("#cStyle"), Object.entries(T.STYLES).map(([id, s]) => ({ value: id, label: s.name })), st.cStyle);
-    VL.select($("#cRiff"), [{ group: "Her five blocks", items: RIFFS.blocks.map(r => ({ value: r.id, label: r.name })) }, { group: "Vocabulary", items: RIFFS.vocab.map(r => ({ value: r.id, label: r.name })) }, { group: "Scale runs", items: RIFFS.runs.map(r => ({ value: r.id, label: r.name })) }], st.cRiff);
+    VL.select($("#cRiff"), [{ group: "Her five blocks", items: RIFFS.blocks.map(r => ({ value: r.id, label: r.name })) }, { group: "Licks", items: RIFFS.vocab.map(r => ({ value: r.id, label: r.name })) }, { group: "Scale runs", items: RIFFS.runs.map(r => ({ value: r.id, label: r.name })) }], st.cRiff);
     CONTROLS.forEach(([id, key, num]) => {
       const el = $(id); el.value = st[key];
       el.addEventListener("change", e => { st[key] = num ? +e.target.value : e.target.value; if (key === "cProg") { current = 0; selItem = null; } if (VL.audio.isRunning()) VL.audio.stop(true); VL.changed(); });
     });
     $("#cPlay").onclick = () => VL.audio.run(buildPlan());
+    const toBand = () => VL.openSetup(true, "#setupBand");
+    $("#cOpenSetup").onclick = toBand;
+    $("#cSummary").onclick = toBand;
+    $("#cSummary").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toBand(); } };
   }
 
   VL.changes = {

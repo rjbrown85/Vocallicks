@@ -1,4 +1,4 @@
-/* Chapter 01: Blocks. The original Riff Blocks drills, unchanged in behavior. */
+/* Chapter 01: Riffs, first half. Her five building blocks, key walk, shapes, combos, and the log. */
 (function () {
   const VL = window.VL, st = VL.st, $ = VL.$, T = VL.theory, D = VL.data;
   const { SETS, BLOCKS, ORDER, COMBOS } = D;
@@ -193,6 +193,7 @@
     const [iv, suf] = CHORDS[st.set];
     return { notes: iv.map(x => bass + x), name: (flats(shift) ? FLAT : SHARP)[tonicPc(shift)] + " " + suf };
   }
+  const SHORT = { qd: "Dip", sl: "Lift", sw: "Swoop", qdt: "Trip", skip: "Skip" };   // compact names for the dropdown
   function walkItemNotes(shift) { const [kind, id] = st.wItem.split(":"); return kind === "r" ? notesFor(id, shift) : comboNotes(COMBOS[+id].b, shift); }
   function walkItemName() { const [kind, id] = st.wItem.split(":"); if (kind === "r") return BLOCKS[id].name; const c = COMBOS[+id]; return (c.n ? `Combo ${c.n}` : "Honorable mention") + ": " + comboName(c.b); }
   function walkShifts() {
@@ -203,7 +204,7 @@
   function buildWalk() {
     VL.select($("#wItem"), [
       { group: "The five riffs", items: ORDER.map(k => ({ value: "r:" + k, label: BLOCKS[k].name })) },
-      { group: "Combos", items: COMBOS.map((c, i) => ({ value: "c:" + i, label: (c.n ? `Combo ${c.n}: ` : "Honorable mention: ") + comboName(c.b) })) }
+      { group: "Combos", items: COMBOS.map((c, i) => ({ value: "c:" + i, label: (c.n ? `Combo ${c.n}: ` : "Gap demo: ") + c.b.map(x => SHORT[x]).join(", ") })) }
     ], st.wItem);
     ["#wLow", "#wHigh"].forEach(id => VL.select($(id), Array.from({ length: 49 }, (_, i) => ({ value: 36 + i, label: VL.pitchName(36 + i) }))));
     $("#wLow").value = st.wLow; $("#wHigh").value = st.wHigh; $("#wReps").value = st.wReps; $("#wMode").value = st.wMode;
@@ -277,6 +278,6 @@
     tonicMidi: () => S().tonic + keyShift()
   };
   function $$sub() {
-    document.querySelectorAll("#ch-blocks .subnav [data-go]").forEach(b => b.onclick = () => { const el = document.getElementById(b.dataset.go); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); });
+    document.querySelectorAll("#ch-riffs .subnav [data-go]").forEach(b => b.onclick = () => { const el = document.getElementById(b.dataset.go); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); });
   }
 })();

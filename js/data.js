@@ -141,7 +141,32 @@
       note: "Major I, a borrowed ♭III, then IV. The minor pentatonic rides right over it." },
     { id: "runhill", group: "Rock & blues", name: "Running Up That Hill", chords: ["bVI", "bVII", "i"], beats: [4, 4, 8], tonality: "minor",
       src: { t: "Songs that use the Running Up That Hill chord progression", u: "https://www.youtube.com/watch?v=6TUUe-FrPOI" },
-      note: "Kate Bush's climb into minor. Every chord fits the minor pentatonic." }
+      note: "Kate Bush's climb into minor. Every chord fits the minor pentatonic." },
+    /* ---- v5: '60s classics ---- */
+    { id: "risingsun", group: "'60s classics", name: "House of the Rising Sun", chords: ["i", "bIII", "IV", "bVI", "i", "bIII", "V", "V"], beats: [2, 2, 2, 2, 2, 2, 2, 2], tonality: "minor",
+      src: { t: "Hooktheory: House of the Rising Sun", u: "https://www.hooktheory.com/theorytab/view/the-animals/house-of-the-rising-sun" },
+      note: "The Animals, 1964. Minor, with a major IV and a major V, so two chords borrow notes from outside the minor pentatonic." },
+    { id: "louie", group: "'60s classics", name: "Louie Louie", chords: ["I", "IV", "v", "IV"], tonality: "mixolydian",
+      src: { t: "Hooktheory: Louie Louie", u: "https://www.hooktheory.com/theorytab/view/the-kingsmen/louie-louie" },
+      note: "The Kingsmen, 1963. A Mixolydian garage-rock loop with a minor v." },
+    { id: "twist", group: "'60s classics", name: "Twist and Shout", chords: ["I", "IV", "V"], beats: [2, 2, 4], tonality: "major",
+      src: { t: "Hooktheory: Twist and Shout", u: "https://www.hooktheory.com/theorytab/view/the-beatles/twist-and-shout" },
+      note: "The Isley Brothers and the Beatles, 1962 to 1963. Three chords in one bar and a held V. Short riffs only." },
+    { id: "brown", group: "'60s classics", name: "Brown Eyed Girl", chords: ["I", "IV", "I", "V7"], tonality: "major",
+      src: { t: "Hooktheory: Brown Eyed Girl", u: "https://www.hooktheory.com/theorytab/view/van-morrison/brown-eyed-girl" },
+      note: "Van Morrison, 1967. Bright and simple. The V7 at the end sets up each return home." },
+    { id: "california", group: "'60s classics", name: "California Dreamin'", chords: ["i", "bVII", "bVI", "bVII", "V"], beats: [2, 2, 2, 2, 8], tonality: "minor",
+      src: { t: "Hooktheory: California Dreamin'", u: "https://www.hooktheory.com/theorytab/view/mamas-and-the-papas/california-dreamin" },
+      note: "The Mamas and the Papas, 1965. Walks down and back up, then holds the V. Most charts play that last chord as a sus4 resolving to major (Hooktheory marks it minor), so it's major here." },
+    { id: "grapevine", group: "'60s classics", name: "Grapevine", chords: ["i", "IV7"], tonality: "dorian",
+      src: { t: "Hooktheory: I Heard It Through the Grapevine", u: "https://www.hooktheory.com/theorytab/view/marvin-gaye/i-heard-it-through-the-grapevine" },
+      note: "Marvin Gaye, 1968. A two-chord Dorian soul vamp: lots of room to riff, and the IV7's 3rd is the note to land on." },
+    { id: "dock", group: "'60s classics", name: "Dock of the Bay", chords: ["I", "III", "IV", "II"], tonality: "major",
+      src: { t: "Hooktheory: Sittin' On The Dock of the Bay", u: "https://www.hooktheory.com/theorytab/view/otis-redding/sittin-on-the-dock-of-the-bay" },
+      note: "Otis Redding, 1968. Two major chords from outside the key (III and II), each raising one note of the scale." },
+    { id: "heyjude", group: "'60s classics", name: "Hey Jude outro", chords: ["I", "bVII", "IV", "I"], tonality: "mixolydian",
+      src: { t: "Hooktheory: Hey Jude", u: "https://www.hooktheory.com/theorytab/view/the-beatles/hey-jude" },
+      note: "The Beatles, 1968. The “na na na” coda switches to Mixolydian. A great loop for long, free ad-libs." }
   ];
 
   /* ---- Vocabulary: patterns beyond the five blocks (general, not from the video) ---- */

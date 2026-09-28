@@ -16,14 +16,17 @@
         VL.changed();
       });
     });
-    const toggle = () => {
-      const p = $("#setupPanel"), open = p.hidden;
-      p.hidden = !open; $("#setupToggle").setAttribute("aria-expanded", open);
-      if (open) p.scrollIntoView({ behavior: "smooth", block: "start" });
-    };
+    const toggle = () => VL.openSetup($("#setupPanel").hidden);
     $("#setupToggle").onclick = toggle;
     $("#setupSummary").onclick = toggle;
+    $("#setupDone").onclick = () => { VL.openSetup(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
   }
+  /* one Setup drawer holds every setting; `where` scrolls to a group inside it */
+  VL.openSetup = function (open, where) {
+    const p = $("#setupPanel");
+    p.hidden = !open; $("#setupToggle").setAttribute("aria-expanded", open);
+    if (open) (where ? $(where) : p).scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   VL.syncSetup = function () {
     $("#set").value = st.set; $("#key").value = st.key; $("#tempo").value = st.tempo; $("#tempoOut").textContent = st.tempo;
     $("#cap").value = st.cap; $("#low").value = st.low; $("#oct").value = st.oct; $("#mode").value = st.mode; $("#sound").value = st.sound; $("#spacing").value = st.spacing;
@@ -31,11 +34,15 @@
   };
   function drawSummary() {
     const set = VL.data.SETS[st.set];
-    $("#setupSummary").innerHTML = [
-      `${T.KEYNAMES[st.key]} ${set.name}`, `${st.tempo} bpm`, `${VL.pitchName(st.low)}–${VL.pitchName(st.cap)}`,
-      st.sound === "piano" ? "Grand piano" : "Simple synth", st.mode === "echo" ? "Echo" : "Sing along", st.spacing === "roomy" ? "Roomy" : "Tight"
-    ].map(x => `<span>${VL.esc(x)}</span>`).join("");
+    const riffs = [`${T.KEYNAMES[st.key]} ${set.name}`, `${st.tempo} bpm`, `${VL.pitchName(st.low)}–${VL.pitchName(st.cap)}`,
+      st.sound === "piano" ? "Grand piano" : "Simple synth", st.mode === "echo" ? "Echo" : "Sing along", st.spacing === "roomy" ? "Roomy" : "Tight"];
+    const p = VL.data.PROGRESSIONS.find(x => x.id === st.cProg) || VL.data.PROGRESSIONS[0];
+    const band = [`${p.name} in ${T.KEYNAMES[st.cKey]}`, T.STYLES[st.cStyle].name];
+    // on Changes the band leads; elsewhere your riff settings do
+    const list = st.chapter === "changes" ? band.concat(riffs.slice(1, 3)) : riffs;
+    $("#setupSummary").innerHTML = list.map(x => `<span>${VL.esc(x)}</span>`).join("") + `<span class="edit">Edit setup</span>`;
   }
+  VL.drawSummary = drawSummary;
 
   document.addEventListener("DOMContentLoaded", () => {
     buildSetup(); VL.syncSetup();
@@ -49,5 +56,7 @@
     VL.onSettings(() => { drawSummary(); VL.audio.soundStatus(); });
     VL.audio.soundStatus();
     VL.initRouter();
+    VL.titleSelects();
+    document.addEventListener("change", e => { if (e.target.tagName === "SELECT") VL.titleSelects(); });
   });
 })();

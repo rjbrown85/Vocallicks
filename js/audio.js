@@ -124,7 +124,7 @@
   };
   A.isRunning = () => !!running;
 
-  /* ---------- rep-based runs (used by Blocks and Vocabulary) ----------
+  /* ---------- rep-based runs (used by the Riffs chapter) ----------
      rep: {notes:[{midi,beats,vel}], tempo, echo, solo, staccato, target, tonic, pad, chord, label, syll, onStart} */
   /* Beats per round. Tight: the riff plus one beat of air, rounded up to a whole beat (minimum 2).
      Roomy: whole 4/4 bars, the original timing. An echo round doubles it. */
