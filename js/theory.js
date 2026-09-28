@@ -310,6 +310,177 @@
     return best;
   };
 
+
+  /* the full context for one progression loop */
+  T.loopContext = function (prog, o) {
+    const base = prog.beats || prog.chords.map(() => 4);
+    const beats = base.map(b => b * (o.bars || 1));
+    const chords = prog.chords.map(n => T.realize(T.parseNumeral(n), o.key, prog.tonality, o.style));
+    const n = chords.length;
+    const starts = []; let acc = 0; beats.forEach(b => { starts.push(acc); acc += b; });
+    const infos = chords.map((c, i) => T.chordScale(c, chords[(i + 1) % n], prog.tonality, o.key));
+    const keyHome = T.keyHome(prog.tonality, o.key);
+    const homes = infos.map(info => o.approach === "key" ? keyHome : T.pickHome(info, o.flavor || "sweet"));
+    return { prog, beats, chords, n, starts, loopBeats: acc, infos, keyHome, homes, approach: o.approach,
+      lo: o.lo, hi: o.hi, center: o.lo + (o.hi - o.lo) * 0.55, blues: prog.tonality === "blues" || !!keyHome.blues };
+  };
+  /* ---------- arranger: where a riff fits over the loop ----------
+     ctx: {starts, beats, loopBeats, chords, infos, homes, keyHome, approach, lo, hi, center, blues} */
+  T.chordIndexAt = function (ctx, beat) {
+    let b = beat % ctx.loopBeats; if (b < 0) b += ctx.loopBeats;
+    let i = 0; for (let k = 0; k < ctx.starts.length; k++) if (ctx.starts[k] <= b + 1e-6) i = k;
+    return i;
+  };
+  const isChange = (ctx, beat) => Math.abs(beat - ctx.loopBeats) < 1e-6 || ctx.starts.some(s => Math.abs(s - beat) < 1e-6);
+  const HELD = 0.5 - 1e-6;
+  /* does one note fit the chord it sounds over? */
+  function noteOk(ctx, midi, beat, dur, isLast, exempt) {
+    const ci = T.chordIndexAt(ctx, beat), info = ctx.infos[ci], ch = ctx.chords[ci], pc = mod(midi);
+    if (isLast) { const t = info.targets.find(x => x.pc === pc); return t ? { ok: true, t, ci } : { ok: false }; }
+    if (exempt) return { ok: true, ci };
+    const inMode = info.modePcs.includes(pc) || ch.pcs.includes(pc);
+    if (dur >= HELD) {
+      if (!inMode) return { ok: false };
+      if (info.avoid.some(a => a.pc === pc)) return { ok: false };
+      return { ok: true, ci };
+    }
+    if (inMode) return { ok: true, ci };
+    if (ctx.blues && ctx.keyHome.pcs.includes(pc)) return { ok: true, ci, blue: true };
+    return { ok: false };
+  }
+  /* every valid pitch placement of a riff starting at a beat */
+  T.fitRiff = function (riff, start, ctx, opt) {
+    opt = opt || {};
+    const beats = riff.beats, n = beats.length, times = [];
+    let t = start; beats.forEach(b => { times.push(t); t += b; });
+    const lastT = times[n - 1];
+    if (start < -1e-6 || lastT > ctx.loopBeats + 1e-6) return [];
+    const out = [];
+    const score = (notes, tgt, gold) => {
+      const mean = notes.reduce((a, b) => a + b, 0) / n;
+      let s = (gold ? 0 : 100) + tgt.pr * 10 + Math.abs(mean - ctx.center);
+      if (opt.prevLast != null) s += Math.abs(notes[0] - opt.prevLast) * 3;
+      return s;
+    };
+    const push = (notes, exemptIdx) => {
+      if (notes.some(m => m < ctx.lo || m > ctx.hi)) return;
+      let tgt = null;
+      for (let j = 0; j < n; j++) {
+        const r = noteOk(ctx, notes[j], times[j], beats[j], j === n - 1, exemptIdx === j);
+        if (!r.ok) return;
+        if (j === n - 1) tgt = r.t;
+      }
+      const gold = isChange(ctx, lastT) && tgt.pr <= 2;
+      out.push({ start, notes: notes.map((m, j) => ({ beat: times[j], dur: beats[j], midi: m, last: j === n - 1, alt: exemptIdx === j })),
+        rank: gold ? "gold" : "green", target: tgt, landChord: T.chordIndexAt(ctx, lastT), score: score(notes, tgt, gold), first: notes[0], lastMidi: notes[n - 1] });
+    };
+    if (riff.kind === "encl") {
+      const ci = T.chordIndexAt(ctx, lastT), info = ctx.infos[ci];
+      const home = ctx.approach === "key" ? ctx.keyHome : ctx.homes[ci];
+      for (let m = ctx.lo + 1; m <= ctx.hi - 2; m++) {
+        if (!info.targets.slice(0, 3).some(x => x.pc === mod(m))) continue;
+        const above = T.ladder(home.pcs.concat(info.modePcs), m + 1, m + 4)[0] || m + 2;
+        push([above, m - 1, m], 1);
+      }
+      return out;
+    }
+    const hci = T.chordIndexAt(ctx, start);
+    const home = ctx.approach === "key" ? ctx.keyHome : ctx.homes[hci];
+    const lad = T.ladder(home.pcs, ctx.lo - 12, ctx.hi + 12);
+    for (let j = 0; j < lad.length; j++) {
+      const idx = riff.steps.map(s => j + s);
+      if (idx.some(i => i < 0 || i >= lad.length)) continue;
+      push(idx.map(i => lad[i]));
+    }
+    return out;
+  };
+  const spanOf = c => { const L = c.notes[c.notes.length - 1]; return [c.notes[0].beat, L.beat + L.dur]; };
+  T.riffSpan = spanOf;
+  /* lock spots for a riff given riffs already placed ([{start,end,lastMidi}]) */
+  T.lockSpots = function (riff, ctx, placed) {
+    placed = placed || [];
+    const spots = [];
+    // half-beat grid, plus the exact starts that put the last note on each chord change
+    const lead = riff.beats.reduce((a, x) => a + x, 0) - riff.beats[riff.beats.length - 1];
+    const starts = [];
+    for (let s = 0; s <= ctx.loopBeats - 0.5 + 1e-6; s += 0.5) starts.push(s);
+    ctx.starts.slice(1).concat([ctx.loopBeats]).forEach(b => { const s = b - lead; if (s >= -1e-6 && !starts.some(x => Math.abs(x - s) < 1e-6)) starts.push(Math.max(0, s)); });
+    starts.sort((x, y) => x - y);
+    for (const s of starts) {
+      const before = placed.filter(p => p.end <= s + 1e-6 && s - p.end <= 0.5 + 1e-6).sort((a, b) => b.end - a.end)[0];
+      const cands = T.fitRiff(riff, s, ctx, { prevLast: before ? before.lastMidi : null });
+      const free = cands.filter(c => { const [a, b] = spanOf(c); return !placed.some(p => a < p.end - 1e-6 && b > p.start + 1e-6); });
+      if (!free.length) continue;
+      free.sort((a, b) => a.score - b.score);
+      const best = free[0];
+      best.chain = !!(before && Math.abs(best.first - before.lastMidi) <= 2);
+      spots.push({ start: s, rank: best.rank, best, count: free.length });
+    }
+    // a green spot crowding a gold one is noise: keep the gold
+    return spots.filter(sp => sp.rank === "gold" || !spots.some(g => g.rank === "gold" && Math.abs(g.start - sp.start) < 0.3));
+  };
+  /* choose the placement for an arranged item (with nudge = scale steps up/down from the best) */
+  T.placeItem = function (riff, start, ctx, prevLast, nudge) {
+    const cands = T.fitRiff(riff, start, ctx, { prevLast });
+    if (!cands.length) return null;
+    const best = cands.slice().sort((a, b) => a.score - b.score)[0];
+    const byPitch = cands.slice().sort((a, b) => a.first - b.first || a.score - b.score);
+    const uniq = []; byPitch.forEach(c => { if (!uniq.length || uniq[uniq.length - 1].first !== c.first) uniq.push(c); });
+    let i = uniq.findIndex(c => c.first === best.first);
+    i = Math.max(0, Math.min(uniq.length - 1, i + (nudge || 0)));
+    const pick = uniq[i];
+    return Object.assign({}, pick, { nudgeMin: -uniq.findIndex(c => c.first === best.first), nudgeMax: uniq.length - 1 - uniq.findIndex(c => c.first === best.first) });
+  };
+  /* fill the loop with riffs that land on chord changes and connect */
+  T.suggestChain = function (riffs, ctx, existing) {
+    const items = (existing || []).map(it => Object.assign({}, it));
+    const bounds = ctx.starts.slice(1).concat([ctx.loopBeats]);
+    let prevId = null;
+    bounds.forEach((b, bi) => {
+      const occ = items.filter(it => it.span).map(it => ({ start: it.span[0], end: it.span[1], lastMidi: it.lastMidi }));
+      const last = occ.slice().sort((x, y) => y.end - x.end)[0];
+      let best = null;
+      riffs.forEach(r => {
+        const total = r.beats.reduce((a, x) => a + x, 0) - r.beats[r.beats.length - 1];
+        const s = b - total;
+        if (s < 0) return;
+        const chainable = last && s >= last.end - 1e-6 && s - last.end <= 0.5 + 1e-6;
+        // leave a breath unless the riff chains straight off the previous one
+        if (last && !chainable && s < last.end + 1 - 1e-6) return;
+        if (!chainable && bi % 2 === 0 && bounds.length > 2) return;
+        const cands = T.fitRiff(r, s, ctx, { prevLast: chainable ? last.lastMidi : null }).filter(c => {
+          const [x, y] = spanOf(c); return !occ.some(p => x < p.end - 1e-6 && y > p.start + 1e-6);
+        });
+        cands.forEach(c => {
+          const connects = chainable && Math.abs(c.first - last.lastMidi) <= 2;
+          if (chainable && !connects) return;
+          const sc = c.score + (r.id === prevId ? 25 : 0) - (connects ? 40 : 0);
+          if (!best || sc < best.sc) best = { sc, r, c };
+        });
+      });
+      if (best) {
+        items.push({ rid: best.r.id, start: best.c.start, nudge: 0, span: spanOf(best.c), lastMidi: best.c.lastMidi }); prevId = best.r.id;
+        // chain a short answer straight off the landing, if one connects and fits before the next change
+        const end = spanOf(best.c)[1], nextB = bounds[bi + 1];
+        if (bi % 2 === 1 || bounds.length <= 2) {
+          let fb = null;
+          riffs.forEach(r => [end, end + 0.5].forEach(s0 => {
+            T.fitRiff(r, s0, ctx, { prevLast: best.c.lastMidi }).forEach(c => {
+              const [x, y] = spanOf(c);
+              if (Math.abs(c.first - best.c.lastMidi) > 2) return;
+              if (nextB !== undefined && y > nextB - 1 + 1e-6) return;
+              if (y > ctx.loopBeats + 1e-6) return;
+              const sc = c.score + (r.id === best.r.id ? 25 : 0);
+              if (!fb || sc < fb.sc) fb = { sc, r, c };
+            });
+          }));
+          if (fb) { items.push({ rid: fb.r.id, start: fb.c.start, nudge: 0, span: spanOf(fb.c), lastMidi: fb.c.lastMidi }); prevId = fb.r.id; }
+        }
+      }
+    });
+    return items.map(it => ({ rid: it.rid, start: it.start, nudge: it.nudge || 0 }));
+  };
+
   if (typeof module !== "undefined" && module.exports) module.exports = T;
   else { root.VL = root.VL || {}; root.VL.theory = T; }
 })(typeof window !== "undefined" ? window : globalThis);

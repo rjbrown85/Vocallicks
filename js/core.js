@@ -9,9 +9,9 @@
 
   /* ---------- settings ---------- */
   const DEF = {
-    set: "minor", key: 4, tempo: 70, cap: 72, low: 52, oct: 0, mode: "echo", sound: "piano",
+    set: "minor", key: 4, tempo: 70, cap: 72, low: 52, oct: 0, mode: "echo", sound: "piano", spacing: "tight",
     wItem: "r:qd", wLow: 57, wHigh: 72, wReps: 4, wMode: "along",
-    cProg: "axis", cKey: 7, cStyle: "rnb", cBars: 1, cLoops: 4, cMode: "listen", cApproach: "key", cFlavor: "sweet", cRiff: "qd", cPlace: "every",
+    cProg: "axis", cKey: 7, cStyle: "rnb", cBars: 1, cLoops: 4, cMode: "listen", cApproach: "key", cFlavor: "sweet", cRiff: "qd", cPlace: "every", cSource: "auto",
     vItem: "v:cas3", vMethod: "doo", sLen: 15, chapter: "blocks"
   };
   const st = VL.st = Object.assign({}, DEF);
@@ -47,9 +47,18 @@
 
   /* ---------- now-playing bar ---------- */
   const bar = () => $("#bar");
+  /* plan.next = {label, go}: the button that starts the next step without waiting */
+  function showNext() {
+    const p = VL.audio.lastPlan, nx = p && p.next;
+    ["#bNext", "#bNext2"].forEach(id => { const b = $(id); b.hidden = !nx; if (nx) b.textContent = "Next: " + nx.label; });
+  }
+  function goNext() {
+    const p = VL.audio.lastPlan; if (!p || !p.next) return;
+    VL.bar.mode("off"); p.next.go();
+  }
   VL.bar = {
     status(main, detail, turn) { $("#bState").textContent = main; $("#bDetail").textContent = detail || ""; bar().classList.toggle("turn", !!turn); },
-    mode(m) { $("#bRun").hidden = m !== "run"; $("#bRate").hidden = m !== "rate"; $("#bBump").hidden = m !== "bump"; bar().hidden = m === "off"; },
+    mode(m) { $("#bRun").hidden = m !== "run"; $("#bRate").hidden = m !== "rate"; $("#bBump").hidden = m !== "bump"; bar().hidden = m === "off"; if (m === "rate" || m === "bump") showNext(); },
     init() {
       $("#bStop").onclick = () => VL.audio.stop(true);
       $("#bSkip").onclick = () => VL.bar.mode("off");
@@ -60,15 +69,21 @@
         if (r === "Clean" && st.tempo < 100 && p && p.bumpable) {
           const nt = Math.min(120, st.tempo + 5);
           $("#bumpBtn").textContent = `Set tempo to ${nt}`; $("#bumpBtn").dataset.t = nt;
+          $("#bumpBtn").hidden = false;
           VL.bar.status("Logged. Clean.", "Ready for a little more speed?"); VL.bar.mode("bump");
+        } else if (p && p.next) {
+          $("#bumpBtn").hidden = true;
+          VL.bar.status(`Logged. ${r}.`, r === "Clean" ? "On to the next one." : "Run it again, or move on."); VL.bar.mode("bump");
         } else VL.bar.mode("off");
       });
+      $("#bNext").onclick = () => goNext();
+      $("#bNext2").onclick = () => goNext();
       $("#bumpBtn").onclick = e => { st.tempo = +e.currentTarget.dataset.t; VL.syncSetup(); VL.changed(); VL.bar.mode("off"); };
     }
   };
 
   /* ---------- router ---------- */
-  const CHAPTERS = ["blocks", "changes", "vocab", "session"];
+  const CHAPTERS = ["blocks", "changes", "vocab", "session", "guide"];
   VL.go = function (ch, push) {
     if (!CHAPTERS.includes(ch)) ch = "blocks";
     CHAPTERS.forEach(c => { const el = $("#ch-" + c); if (el) el.hidden = c !== ch; });

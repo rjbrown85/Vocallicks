@@ -85,6 +85,7 @@
     runSampler = makeSampler(runGain);
     const g = runGain, t0 = ctx.currentTime + .2;
     const evs = plan.tl.ev.slice().sort((a, b) => a.t - b.t);
+    if (VL.pendingNext && !plan.noRate) { plan.next = VL.pendingNext; VL.pendingNext = null; }
     running = plan; VL.bar.mode("run");
     const at = (time, fn) => timers.push(setTimeout(fn, Math.max(0, (time - ctx.currentTime) * 1000)));
     let i = 0;
@@ -125,20 +126,25 @@
 
   /* ---------- rep-based runs (used by Blocks and Vocabulary) ----------
      rep: {notes:[{midi,beats,vel}], tempo, echo, solo, staccato, target, tonic, pad, chord, label, syll, onStart} */
+  /* Beats per round. Tight: the riff plus one beat of air, rounded up to a whole beat (minimum 2).
+     Roomy: whole 4/4 bars, the original timing. An echo round doubles it. */
+  A.tight = () => st.spacing !== "roomy";
+  A.roundBeats = len => A.tight() ? Math.max(2, Math.ceil(len + 1 - 1e-6)) : Math.max(4, Math.ceil(len / 4 - 1e-6) * 4);
+  A.countBeats = () => A.tight() ? 2 : 4;
   A.runReps = function (plan) {
     const tl = A.timeline();
     let t = 0;
-    const b0 = 60 / plan.reps[0].tempo;
-    for (let i = 0; i < 4; i++) { tl.click(t + i * b0, i === 0, false); const k = i; tl.ui(t + i * b0, () => VL.bar.status("Count-in", `${k + 1} of 4 · ${plan.title}`)); }
-    t += 4 * b0;
+    const b0 = 60 / plan.reps[0].tempo, nc = A.countBeats(), tight = A.tight();
+    for (let i = 0; i < nc; i++) { tl.click(t + i * b0, i === 0, false); const k = i; tl.ui(t + i * b0, () => VL.bar.status("Count-in", `${k + 1} of ${nc} · ${plan.title}`)); }
+    t += nc * b0;
     plan.reps.forEach((rep, ri) => {
-      const b = 60 / rep.tempo, len = rep.notes.reduce((s, n) => s + n.beats, 0), barB = Math.max(4, Math.ceil(len / 4 - 1e-6) * 4);
+      const b = 60 / rep.tempo, len = rep.notes.reduce((s, n) => s + n.beats, 0), barB = A.roundBeats(len);
       const total = barB * (rep.echo ? 2 : 1);
       const pad = rep.pad || [rep.tonic - 12, rep.tonic - 5];
       const pianoPad = st.sound === "piano";
       if (!rep.chord) { tl.pad(t, (pianoPad ? barB : total) * b, pad, .22); if (rep.echo && pianoPad) tl.pad(t + barB * b, barB * b, pad, .2); }
       else if (!pianoPad) tl.pad(t, total * b, pad, .2);
-      for (let k = 0; k < total; k++) tl.click(t + k * b, k % 4 === 0, true);
+      for (let k = 0; k < total; k++) tl.click(t + k * b, tight ? k % barB === 0 : k % 4 === 0, true);
       const roundTxt = plan.noCount ? rep.label : `Round ${ri + 1} of ${plan.reps.length} · ${rep.label}`;
       if (rep.chord) { tl.notes(t, rep.chord, total * b * .95, .55, .03); tl.ui(t, () => { if (rep.onStart) rep.onStart(); VL.bar.status("New key", roundTxt); }); t += total * b; return; }
       tl.ui(t, () => { if (rep.onStart) rep.onStart(); VL.bar.status(rep.echo || rep.solo ? "Listen" : "Sing along", roundTxt); });

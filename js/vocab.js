@@ -64,6 +64,7 @@
       return Object.assign({}, x, { beats: b });
     });
   }
+  const NEXT = { listen: "doo", doo: "back", chunk: "back", back: "speed", accent: "speed", rhythm: "speed" };
   function methodPlan(item, method, target) {
     const Tm = st.tempo, slow = Math.max(40, Math.round(Tm * .6)), notes = item.notes, n = notes.length;
     const tonic = VL.blocks.tonicMidi();
@@ -100,7 +101,9 @@
       for (let i = 0; i < 4; i++) { const tt = Math.round(Tm + (goal - Tm) * i / 3); reps.push(rep(notes, tt, { label: `${tt} bpm`, syll: "“ah”" })); }
     }
     const tempos = [...new Set(reps.map(r => r.tempo))];
-    return { title, reps, bumpable: method !== "listen", keyText: VL.blocks.keyLabel(), tempoText: tempos.length > 1 ? `${tempos[0]} to ${tempos[tempos.length - 1]} bpm` : `${tempos[0]} bpm`,
+    const nx = NEXT[method], nm = nx && D.METHODS.find(m => m.id === nx);
+    const next = nm ? { label: nm.name, go: () => { if (target === $("#vStair")) { st.vMethod = nx; VL.changed(); } VL.audio.runReps(methodPlan(item, nx, target)); } } : null;
+    return { title, reps, next, bumpable: method !== "listen", keyText: VL.blocks.keyLabel(), tempoText: tempos.length > 1 ? `${tempos[0]} to ${tempos[tempos.length - 1]} bpm` : `${tempos[0]} bpm`,
       meta: { chapter: "vocab", item: item.id, step: method, bpm: tempos[tempos.length - 1] } };
   }
   function stairNotes(item) { return item.notes.map(n => ({ midi: n.midi, beats: n.beats, color: item.c, on: item.on, acc: n.acc })); }
@@ -113,7 +116,6 @@
       a.innerHTML = `${v.land ? '<span class="sticker">works in Changes</span>' : ""}
         <div class="riff-head"><span class="num" aria-hidden="true">${String.fromCharCode(65 + i)}</span><h3>${VL.esc(v.name)}</h3></div>
         <div class="stair-wrap"><div class="stair"></div></div>
-        <p class="tip">${VL.esc(v.desc)}</p>
         <div class="row"><button class="btn" type="button" data-m="listen">Listen</button><button class="btn" type="button" data-m="doo">Doo first</button><button class="btn" type="button" data-m="back">Build from the end</button><button class="btn pri" type="button" data-m="bench">Open in workbench</button></div>`;
       a.querySelectorAll("[data-m]").forEach(b => b.onclick = () => {
         const it = itemById("v:" + v.id);
@@ -134,7 +136,6 @@
     VL.select($("#vMethod"), D.METHODS.map(m => ({ value: m.id, label: m.name })), st.vMethod);
     [["#vItem", "vItem"], ["#vMethod", "vMethod"]].forEach(([id, key]) => $(id).addEventListener("change", e => { st[key] = e.target.value; VL.changed(); }));
     $("#vGo").onclick = () => VL.audio.runReps(methodPlan(itemById(st.vItem), st.vMethod, $("#vStair")));
-    const ml = $("#vMethods"); ml.innerHTML = D.METHODS.map(m => `<li><b>${VL.esc(m.name)}.</b> ${VL.esc(m.desc)}</li>`).join("");
   }
   function drawBench() {
     $("#vItem").value = st.vItem; $("#vMethod").value = st.vMethod;

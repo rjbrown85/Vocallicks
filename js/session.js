@@ -21,17 +21,18 @@
     const voc = VOCAB_ORDER[((d % VOCAB_ORDER.length) + VOCAB_ORDER.length) % VOCAB_ORDER.length];
     const shape = ["qd", "sl", "sw", "qdt"][((d % 4) + 4) % 4];
     const steps = [
-      { id: "warm", mins: 2, title: "Warm up light", text: "Pentatonic climb on “doo,” quiet and easy.", go: () => VL.vocab.run("v:climb", "doo") },
-      { id: "block", mins: 3, title: `${D.BLOCKS[riff].name}: ${STEP_NAMES[step]}`, text: `Step ${step} of the ladder. It moves up once you rate this step Clean.`, go: () => { VL.go("blocks"); setTimeout(() => { document.getElementById("riff-" + riff).scrollIntoView({ block: "start" }); VL.blocks.runLadder(riff, step); }, 60); } },
-      { id: "changes", mins: 4, title: `${progName(prog)}: one scale, sing along`, text: "Let the piano's riffs guide you, then sing them yourself.", go: () => VL.changes.runPreset({ cProg: prog, cApproach: "key", cMode: "along", cPlace: "phrase", cLoops: 4 }) }
+      { id: "warm", mins: 2, title: "Warm up light", text: "Pentatonic climb on “doo,” quiet.", go: () => VL.vocab.run("v:climb", "doo") },
+      { id: "block", mins: 3, title: `${D.BLOCKS[riff].name}: ${STEP_NAMES[step]}`, text: `Ladder step ${step} of 5.`, go: () => { VL.go("blocks"); setTimeout(() => { document.getElementById("riff-" + riff).scrollIntoView({ block: "start" }); VL.blocks.runLadder(riff, step); }, 60); } },
+      { id: "changes", mins: 4, title: `${progName(prog)}: one scale, sing along`, text: "Follow the piano's riffs.", go: () => VL.changes.runPreset({ cProg: prog, cApproach: "key", cMode: "along", cPlace: "phrase", cLoops: 4 }) }
     ];
     if (st.sLen >= 15) {
-      steps.splice(2, 0, { id: "shape", mins: 2, title: `Move the ${D.BLOCKS[shape].name}`, text: "The same shape from every step of the scale.", go: () => { VL.go("blocks"); setTimeout(() => { document.getElementById("shapes").scrollIntoView({ block: "start" }); VL.blocks.runShapes(shape); }, 60); } });
+      steps.push({ id: "arr", mins: 3, title: `Arrange: ${progName(prog)}`, text: "Lock two or three riffs into the loop, then sing along.", go: () => VL.changes.openArranger(prog) });
+      steps.splice(2, 0, { id: "shape", mins: 2, title: `Move the ${D.BLOCKS[shape].name}`, text: "The same shape from every scale step.", go: () => { VL.go("blocks"); setTimeout(() => { document.getElementById("shapes").scrollIntoView({ block: "start" }); VL.blocks.runShapes(shape); }, 60); } });
       steps.push({ id: "vocab", mins: 3, title: `New lick: ${VL.vocab.itemName("v:" + voc)}`, text: "Build it from the last notes backward.", go: () => VL.vocab.run("v:" + voc, "back") });
     }
     if (st.sLen >= 20) {
-      steps.push({ id: "cbc", mins: 3, title: `${progName(prog)}: chord by chord, echo`, text: "Now the scale changes with each chord. Echo each landing.", go: () => VL.changes.runPreset({ cProg: prog, cApproach: "chord", cMode: "echo", cPlace: "phrase", cLoops: 4 }) });
-      steps.push({ id: "rec", mins: 2, title: "Record one take", text: "Free-riff over the loop and listen back once.", go: () => { VL.go("session"); setTimeout(() => $("#recorder").scrollIntoView({ block: "start" }), 60); } });
+      steps.push({ id: "cbc", mins: 3, title: `${progName(prog)}: chord by chord, echo`, text: "The scale follows each chord. Echo each landing.", go: () => VL.changes.runPreset({ cProg: prog, cApproach: "chord", cMode: "echo", cPlace: "phrase", cLoops: 4 }) });
+      steps.push({ id: "rec", mins: 2, title: "Record one take", text: "Free-riff over the loop, listen back once.", go: () => { VL.go("session"); setTimeout(() => $("#recorder").scrollIntoView({ block: "start" }), 60); } });
     }
     return steps;
   }
@@ -39,6 +40,13 @@
   function getDone() { try { return JSON.parse(localStorage.getItem(doneKey())) || {}; } catch (e) { return {}; } }
   function setDone(o) { try { localStorage.setItem(doneKey(), JSON.stringify(o)); localStorage.setItem("vl-days-" + VL.today(), "1"); } catch (e) {} }
 
+  const NO_RUN = ["arr", "rec"];
+  /* Start a routine step. The run it starts gets a Next button that ticks this step and starts the next one. */
+  function startStep(steps, i) {
+    const s = steps[i], nx = steps[i + 1];
+    VL.pendingNext = !NO_RUN.includes(s.id) && nx ? { label: nx.title, go: () => { const o = getDone(); o[s.id] = true; setDone(o); drawRoutine(); drawStreak(); startStep(steps, i + 1); } } : null;
+    s.go();
+  }
   function drawRoutine() {
     const steps = routine(), done = getDone(), ol = $("#sSteps");
     ol.innerHTML = "";
@@ -48,7 +56,7 @@
       const li = document.createElement("li"); li.className = "rstep" + (done[s.id] ? " done" : "");
       li.innerHTML = `<span class="rnum">${i + 1}</span><div class="rbody"><b>${VL.esc(s.title)}</b><span>${VL.esc(s.text)} About ${s.mins} min.</span></div>
         <div class="row"><button class="btn pri" type="button">Start</button><label class="chk"><input type="checkbox" ${done[s.id] ? "checked" : ""}> Done</label></div>`;
-      li.querySelector("button").onclick = s.go;
+      li.querySelector("button").onclick = () => startStep(steps, i);
       li.querySelector("input").onchange = e => { const o = getDone(); o[s.id] = e.target.checked; setDone(o); drawRoutine(); drawStreak(); };
       ol.appendChild(li);
     });
@@ -112,18 +120,19 @@
   let recording = null;
   function recSummary() {
     const p = D.PROGRESSIONS.find(x => x.id === st.cProg);
-    $("#rWhat").textContent = `It uses your Changes settings: ${p ? p.name : ""} in ${T.KEYNAMES[st.cKey]}, ${T.STYLES[st.cStyle].name}, ${st.cLoops} loops at ${st.tempo} bpm.`;
+    $("#rWhat").textContent = `${p ? p.name : ""} in ${T.KEYNAMES[st.cKey]}, ${T.STYLES[st.cStyle].name}, ${st.cLoops} loops at ${st.tempo} bpm${st.cSource === "mine" ? ", your arrangement" : ""}.`;
   }
+  const inPreview = () => { try { return window.top !== window.self && !/github\.io$/.test(location.hostname); } catch (e) { return true; } };
   async function startRecording() {
     const msg = $("#rMsg"); msg.textContent = "";
     if (recording) return;
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined") {
-      msg.textContent = "This browser can't record here. The claude.ai preview blocks the microphone; the GitHub Pages version can record."; return;
+      msg.textContent = inPreview() ? "The claude.ai preview can't record. Open the GitHub Pages version to record." : "This browser doesn't support recording. Try a current Chrome, Edge, Firefox, or Safari."; return;
     }
     const ctx = VL.audio.ctx();
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
-    catch (e) { msg.textContent = "The microphone was blocked. The claude.ai preview can't record; open the GitHub Pages version, allow the microphone, and try again."; return; }
+    catch (e) { msg.textContent = inPreview() ? "The claude.ai preview blocks the microphone. Open the GitHub Pages version to record." : "The microphone was blocked. Allow it for this site (the icon in the address bar), then try again."; return; }
     const dest = ctx.createMediaStreamDestination();
     const mic = ctx.createMediaStreamSource(stream); mic.connect(dest);
     VL.audio.master.connect(dest);
@@ -156,15 +165,30 @@
     });
   }
 
+  /* ---------- saved arrangements ---------- */
+  function drawArrangements() {
+    const list = VL.changes.saved(), ol = $("#sArr"); ol.innerHTML = "";
+    $("#sArrEmpty").hidden = list.length > 0;
+    list.forEach(a => {
+      const li = document.createElement("li");
+      li.innerHTML = `<b></b><span class="meta"></span><span class="row"><button class="btn" type="button" data-m="listen">Listen</button><button class="btn pri" type="button" data-m="along">Sing along</button><button class="btn" type="button" data-m="edit">Edit</button></span>`;
+      li.children[0].textContent = a.name;
+      li.children[1].textContent = `${a.items.length} riff${a.items.length === 1 ? "" : "s"} · ${progName(a.prog)}`;
+      li.querySelectorAll("[data-m]").forEach(b => b.onclick = () => b.dataset.m === "edit" ? VL.changes.editSaved(a.id) : VL.changes.playSaved(a.id, b.dataset.m));
+      ol.appendChild(li);
+    });
+  }
+
   VL.session = {
     init() {
       $("#sLen").value = st.sLen;
       $("#sLen").onchange = e => { st.sLen = +e.target.value; VL.changed(); };
       $("#rStart").onclick = startRecording;
-      drawRoutine(); drawStreak(); drawProgress(); recSummary(); drawTakes();
-      VL.onSettings(() => { drawRoutine(); recSummary(); });
+      $("#sArrNew").onclick = () => VL.changes.openArranger(st.cProg);
+      drawRoutine(); drawStreak(); drawProgress(); recSummary(); drawTakes(); drawArrangements();
+      VL.onSettings(() => { drawRoutine(); recSummary(); drawArrangements(); });
       VL.onLog(() => { drawRoutine(); drawStreak(); drawProgress(); });
-      VL.whenShown("session", () => { drawRoutine(); drawStreak(); drawProgress(); recSummary(); });
+      VL.whenShown("session", () => { drawRoutine(); drawStreak(); drawProgress(); recSummary(); drawArrangements(); });
     }
   };
 })();

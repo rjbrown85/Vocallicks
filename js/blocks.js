@@ -51,18 +51,17 @@
       after = () => drawRiff(k, keyShift());
     }
     const tempos = [...new Set(reps.map(r => r.tempo))];
-    return { title, reps, bumpable, after, keyText: keyLabel(sh), tempoText: tempos.length > 1 ? `${tempos[0]} to ${tempos[tempos.length - 1]} bpm` : `${tempos[0]} bpm`,
+    const next = step < 5 ? { label: STEPS[step], go: () => run(ladderPlan(k, step + 1)) } : null;
+    return { title, reps, bumpable, after, next, keyText: keyLabel(sh), tempoText: tempos.length > 1 ? `${tempos[0]} to ${tempos[tempos.length - 1]} bpm` : `${tempos[0]} bpm`,
       meta: { item: "block:" + k, step, bpm: tempos[tempos.length - 1] } };
   }
 
   /* ---------- riffs ---------- */
-  const STEPS = [
-    ["Listen", "The piano plays it twice. Just listen."],
-    ["Detached", "On “hee,” every note separate, slow."],
-    ["Smooth", "On “ah,” notes connected, same slow speed."],
-    ["Speed up", "Four rounds climbing toward 100 bpm."],
-    ["Key walk", "Up a half step each round to your top note, then back down."]
-  ];
+  const STEPS = ["Listen", "Detached", "Smooth", "Speed up", "Key walk"];
+  function stepTempo(i) {
+    const Tm = st.tempo, s = slowT();
+    return [`${Tm} bpm`, `“hee” · ${s} bpm`, `“ah” · ${s} bpm`, `${Tm}→${Math.max(Tm, 100)} bpm`, `${Tm} bpm`][i];
+  }
   function buildRiffs() {
     const list = $("#riffList");
     ORDER.forEach(k => {
@@ -71,8 +70,7 @@
       a.innerHTML = `<div class="riff-head"><span class="num" aria-hidden="true">${m.num}</span><h3>${m.name}</h3></div>
         <div class="stair-wrap"><div class="stair"></div></div>
         <dl class="facts"><div><dt>Notes</dt><dd class="f-notes"></dd></div><div><dt>Scale steps</dt><dd class="f-degs"></dd></div><div><dt>Rhythm</dt><dd>${m.rhythm}</dd></div></dl>
-        <p class="tip">${m.tip}</p>
-        <ol class="ladder">${STEPS.map((s, i) => `<li><button type="button" class="step" data-step="${i + 1}"><span class="n">${i + 1}</span><b>${s[0]}</b><span class="d">${s[1]}</span></button></li>`).join("")}</ol>`;
+        <ol class="ladder">${STEPS.map((s, i) => `<li><button type="button" class="step" data-step="${i + 1}"><span class="n">${i + 1}</span><b>${s}</b><span class="d"></span></button></li>`).join("")}</ol>`;
       a.querySelectorAll(".step").forEach(b => b.onclick = () => run(ladderPlan(k, +b.dataset.step)));
       list.appendChild(a);
     });
@@ -82,8 +80,7 @@
     renderStair(a.querySelector(".stair"), ns, shift);
     a.querySelector(".f-notes").textContent = ns.map(n => nn(n.midi, shift)).join(" ");
     a.querySelector(".f-degs").textContent = ns.map(n => deg(n.midi, shift)).join(" ");
-    a.querySelector('[data-step="2"] .d').textContent = `On “hee,” every note separate, at ${slowT()} bpm.`;
-    a.querySelector('[data-step="3"] .d').textContent = `On “ah,” notes connected, at ${slowT()} bpm.`;
+    a.querySelectorAll(".step .d").forEach((d, i) => { d.textContent = stepTempo(i); });
   }
 
   /* ---------- shapes ---------- */
@@ -142,7 +139,7 @@
       const a = document.createElement("article"); a.className = "panel combo";
       const label = c.n ? `Combo ${c.n}` : "Honorable mention";
       a.innerHTML = `${c.sticker ? `<span class="sticker ${c.stickerCls || ""}">${c.sticker}</span>` : ""}
-        <p class="kicker">${label}</p><h3>${comboName(c.b)}</h3><p class="note">${c.note}</p>${legend(c.b)}
+        <p class="kicker">${label}</p><h3>${comboName(c.b)}</h3>${legend(c.b)}
         <div class="stair-wrap"><div class="stair"></div></div>
         <div class="row"><button class="btn" type="button" data-k="listen">Listen</button><button class="btn" type="button" data-k="slow">Slow ×4</button><button class="btn pri" type="button" data-k="echo">Echo ×4</button></div>`;
       const tg = a.querySelector(".stair");
@@ -230,8 +227,8 @@
       c.textContent = (flats(s) ? FLAT : SHARP)[tonicPc(s)]; c.dataset.s = s; keys.appendChild(c);
     }
     const up = w.s1 - w.s0 + 1, nKeys = up * 2 - 1;
-    const len = walkItemNotes(0).reduce((a, n) => a + n.beats, 0), barB = Math.max(4, Math.ceil(len / 4 - 1e-6) * 4);
-    const beats = nKeys * (4 + st.wReps * barB * (st.wMode === "echo" ? 2 : 1)) + 4;
+    const len = walkItemNotes(0).reduce((a, n) => a + n.beats, 0), barB = VL.audio.roundBeats(len);
+    const beats = nKeys * (VL.audio.roundBeats(0) + st.wReps * barB * (st.wMode === "echo" ? 2 : 1)) + VL.audio.countBeats();
     const mins = Math.max(1, Math.round(beats * 60 / st.tempo / 60));
     sum.textContent = `${up} key${up > 1 ? "s" : ""} up, from ${chordFor(w.s0).name} to ${chordFor(w.s1).name}, then back down. That's ${nKeys} keys in about ${mins} minute${mins > 1 ? "s" : ""} at ${st.tempo} bpm.`;
   }

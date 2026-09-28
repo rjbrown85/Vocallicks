@@ -1,4 +1,4 @@
-/* Chapter 02: Changes. Chord progressions, chord-scale matching, riffs landing on the changes. */
+/* Chapter 02: Changes. Progressions, chord-scale matching, auto riffs, and the riff arranger. */
 (function () {
   const VL = window.VL, st = VL.st, $ = VL.$, T = VL.theory, D = VL.data;
   const mod = T.mod;
@@ -9,56 +9,74 @@
     const vocab = D.VOCAB.filter(v => v.land).map(v => ({ id: v.id, name: v.name, kind: v.kind, steps: v.steps, beats: v.beats, vel: null, c: v.c, on: "var(--ink)" }));
     return { blocks, vocab, all: blocks.concat(vocab) };
   }
-  const riffById = id => riffOptions().all.find(r => r.id === id) || riffOptions().all[0];
+  const RIFFS = riffOptions();
+  const riffById = id => RIFFS.all.find(r => r.id === id) || RIFFS.all[0];
+  const velOf = (r, j, n) => r.vel ? r.vel[j] : (j === 0 ? .9 : j === n - 1 ? .75 : .8);
+  const SUGGEST_POOL = ["qd", "sl", "sw", "qdt", "skip", "turn", "trip3", "climb"];
 
-  /* ---------- compute the whole picture for the current settings ---------- */
+  /* ---------- arrangements (working copy per progression + saved list) ---------- */
+  const WORKKEY = "vl-arr-work", SAVEKEY = "vl-arr-saved";
+  let work = {}, saved = [];
+  try { work = JSON.parse(localStorage.getItem(WORKKEY)) || {}; } catch (e) {}
+  try { saved = JSON.parse(localStorage.getItem(SAVEKEY)) || []; } catch (e) {}
+  const persist = () => { try { localStorage.setItem(WORKKEY, JSON.stringify(work)); localStorage.setItem(SAVEKEY, JSON.stringify(saved)); } catch (e) {} };
+  const items = () => (work[st.cProg] = work[st.cProg] || []);
+  const setItems = arr => { work[st.cProg] = arr; persist(); };
+
+  /* ---------- compute everything for the current settings ---------- */
   function compute() {
     const prog = D.PROGRESSIONS.find(p => p.id === st.cProg) || D.PROGRESSIONS[0];
     const style = T.STYLES[st.cStyle];
-    const base = prog.beats || prog.chords.map(() => 4);
-    const beats = base.map(b => b * st.cBars);
-    const chords = prog.chords.map(n => T.realize(T.parseNumeral(n), st.cKey, prog.tonality, st.cStyle));
-    const n = chords.length;
-    const starts = []; let acc = 0; beats.forEach(b => { starts.push(acc); acc += b; });
-    const loopBeats = acc;
-    const infos = chords.map((c, i) => T.chordScale(c, chords[(i + 1) % n], prog.tonality, st.cKey));
-    const keyHome = T.keyHome(prog.tonality, st.cKey);
+    const ctx = T.loopContext(prog, { key: st.cKey, style: st.cStyle, approach: st.cApproach, flavor: st.cFlavor, lo: st.low, hi: st.cap, bars: st.cBars });
+    const { beats, chords, n, starts, loopBeats, infos, keyHome, homes, lo, hi, center } = ctx;
     const fl = T.keyUsesFlats(st.cKey, prog.tonality);
-    const homes = infos.map(info => st.cApproach === "key" ? keyHome : T.pickHome(info, st.cFlavor));
     const clashes = chords.map((c, i) => T.clashes(homes[i], c, infos[i]));
-    const lo = st.low, hi = st.cap, center = lo + (hi - lo) * 0.55;
-
-    // riff placements
     const riff = riffById(st.cRiff);
-    const placed = [];
-    let prevLast = null, lastEnd = -1;
-    for (let i = 0; i < n; i++) {
-      const use = st.cPlace === "every" || (st.cPlace === "phrase" && i % 2 === 1) || (st.cPlace === "loop" && i === n - 1);
-      if (!use) continue;
-      const nextInfo = infos[(i + 1) % n], cb = starts[i] + beats[i];
-      const rb = riff.kind === "encl" ? D.VOCAB.find(v => v.id === "encl").beats : riff.beats;
-      const total = rb.reduce((a, b) => a + b, 0), lastDur = rb[rb.length - 1];
-      const startBeat = cb - (total - lastDur);
-      if (startBeat < lastEnd + 0.01 || startBeat < -loopBeats) continue;
-      const res = riff.kind === "encl" ? T.enclose(homes[i], nextInfo.targets, lo, hi, center)
-        : T.landRiff(riff.steps, homes[i], nextInfo.targets, lo, hi, center, prevLast);
-      if (!res) continue;
-      let bt = startBeat;
-      const notes = res.notes.map((m, j) => {
-        const o = { beat: bt, dur: rb[j], midi: m, vel: riff.vel ? riff.vel[j] : (j === 0 ? .9 : j === res.notes.length - 1 ? .75 : .8),
-          alt: (res.altered && j === res.notes.length - 1) || (res.chromatic && res.chromatic.includes(j)), last: j === res.notes.length - 1 };
-        bt += rb[j]; return o;
+    let placed = [], invalid = 0;
+
+    if (st.cSource === "mine") {
+      const its = items().slice().sort((a, b) => a.start - b.start);
+      its.forEach((it, idx) => {
+        const r = riffById(it.rid);
+        const prev = placed[placed.length - 1];
+        const prevLast = prev && it.start - prev.span[1] <= 0.5 + 1e-6 && it.start >= prev.span[1] - 1e-6 ? prev.lastMidi : null;
+        const pl = T.placeItem(r, it.start, ctx, prevLast, it.nudge || 0);
+        if (!pl) { invalid++; return; }
+        const span = T.riffSpan(pl);
+        if (prev && span[0] < prev.span[1] - 1e-6) { invalid++; return; }
+        placed.push({ item: it, riff: r, c: r.c, on: r.on, rank: pl.rank, target: pl.target, landChord: pl.landChord, span, lastMidi: pl.lastMidi,
+          chain: prevLast != null && Math.abs(pl.first - prevLast) <= 2, nudgeMin: pl.nudgeMin, nudgeMax: pl.nudgeMax,
+          notes: pl.notes.map((nt, j) => Object.assign({}, nt, { vel: velOf(r, j, pl.notes.length) })) });
       });
-      placed.push({ i, notes, target: res.t, altered: res.altered, landsOn: (i + 1) % n });
-      prevLast = res.notes[res.notes.length - 1];
-      lastEnd = cb + lastDur;
+    } else {
+      let prevLast = null, lastEnd = -1;
+      for (let i = 0; i < n; i++) {
+        const use = st.cPlace === "every" || (st.cPlace === "phrase" && i % 2 === 1) || (st.cPlace === "loop" && i === n - 1);
+        if (!use) continue;
+        const nextInfo = infos[(i + 1) % n], cb = starts[i] + beats[i];
+        const rb = riff.kind === "encl" ? D.VOCAB.find(v => v.id === "encl").beats : riff.beats;
+        const total = rb.reduce((a, b) => a + b, 0), lastDur = rb[rb.length - 1];
+        const startBeat = cb - (total - lastDur);
+        if (startBeat < lastEnd + 0.01 || startBeat < -loopBeats) continue;
+        const res = riff.kind === "encl" ? T.enclose(homes[i], nextInfo.targets, lo, hi, center)
+          : T.landRiff(riff.steps, homes[i], nextInfo.targets, lo, hi, center, prevLast);
+        if (!res) continue;
+        let bt = startBeat;
+        const notes = res.notes.map((m, j) => {
+          const o = { beat: bt, dur: rb[j], midi: m, vel: velOf(riff, j, res.notes.length),
+            alt: (res.altered && j === res.notes.length - 1) || (res.chromatic && res.chromatic.includes(j)), last: j === res.notes.length - 1 };
+          bt += rb[j]; return o;
+        });
+        placed.push({ riff, c: riff.c, on: riff.on, notes, target: res.t, altered: res.altered, span: [notes[0].beat, cb + lastDur], lastMidi: res.notes[res.notes.length - 1] });
+        prevLast = res.notes[res.notes.length - 1];
+        lastEnd = cb + lastDur;
+      }
+      if (placed.length > 1 && placed[0].notes[0].beat < 0) {
+        const L = placed[placed.length - 1], le = L.notes[L.notes.length - 1];
+        if (placed[0].notes[0].beat + loopBeats < le.beat + le.dur) placed.shift();
+      }
     }
-    // a riff that starts before the loop must not collide with the one that lands on chord 1 from the end
-    if (placed.length > 1 && placed[0].notes[0].beat < 0) {
-      const L = placed[placed.length - 1], le = L.notes[L.notes.length - 1];
-      if (placed[0].notes[0].beat + loopBeats < le.beat + le.dur) placed.shift();
-    }
-    return { prog, style, beats, chords, n, starts, loopBeats, infos, keyHome, fl, homes, clashes, lo, hi, riff, placed };
+    return { prog, style, ctx, beats, chords, n, starts, loopBeats, infos, keyHome, fl, homes, clashes, lo, hi, riff, placed, invalid };
   }
 
   /* ---------- voicings and comping ---------- */
@@ -77,11 +95,10 @@
   }
   function voice(pcs, prev) {
     let best = null;
-    const sorted = pcs.slice();
-    for (let r = 0; r < sorted.length; r++) {
-      const rot = sorted.slice(r).concat(sorted.slice(0, r));
+    for (let r = 0; r < pcs.length; r++) {
+      const rot = pcs.slice(r).concat(pcs.slice(0, r));
       for (const L of [50, 53, 56]) {
-        const out = []; let m = L;
+        const out = [];
         rot.forEach((pc, i) => { let x = i === 0 ? L : out[i - 1] + 1; while (mod(x) !== pc) x++; out.push(x); });
         if (out[out.length - 1] > 76) continue;
         const mean = out.reduce((a, b) => a + b, 0) / out.length;
@@ -159,13 +176,13 @@
       }));
       tagT = base + C.loopBeats * b;
     }
-    // resolve to the first chord once at the end
     compChord(tl, tagT, 4, C.chords[0], C.chords[0], C.style, b, voicings[0]);
     tl.ui(tagT, () => { markChord(0); VL.bar.status("Home", T.chordName(C.chords[0], C.fl)); });
     tl.end = tagT + 4 * b;
     const modeTxt = { listen: "listen", along: "sing along", echo: "echo", free: "free riff" }[mode];
+    const what = st.cSource === "mine" ? "my arrangement" : C.riff.name;
     return {
-      tl, title: `${C.prog.name}, ${C.style.name}: ${modeTxt}`, bumpable: mode !== "listen",
+      tl, title: `${C.prog.name}, ${C.style.name}, ${what}: ${modeTxt}`, bumpable: mode !== "listen",
       keyText: `${T.spell(st.cKey, C.fl)} ${T.TONALITY[C.prog.tonality].label}`, tempoText: `${st.tempo} bpm`,
       meta: { chapter: "changes", item: "prog:" + C.prog.id, step: mode, bpm: st.tempo },
       after: () => markChord(-1)
@@ -173,64 +190,63 @@
   }
   function laneIndex(C, pi, j) { let k = 0; for (let x = 0; x < pi; x++) k += C.placed[x].notes.length; return k + j; }
   const cs = (ch, pc, fl) => T.spellRel(ch.root, T.spell(ch.root, fl), pc, ch.fam === "dim" || ch.fam === "hdim");
-  function homeName(h, fl) {
+  function homeName(h, fl, short) {
     if (h.kind === "arp") return `${T.spell(h.minorRoot, fl)} chord tones`;
-    if (h.kind === "blues") return `${T.spell(h.minorRoot, fl)} blues scale`;
-    return `${T.spell(h.minorRoot, fl)} minor pentatonic`;
+    if (h.kind === "blues") return `${T.spell(h.minorRoot, fl)} blues${short ? "" : " scale"}`;
+    return `${T.spell(h.minorRoot, fl)} ${short ? "min pent" : "minor pentatonic"}`;
   }
 
   /* ---------- drawing ---------- */
+  let lastC = null, current = 0;
   function markChord(i) {
     document.querySelectorAll("#cCards .ccard").forEach((c, k) => c.classList.toggle("now", k === i));
     document.querySelectorAll("#cLane .lchord").forEach((c, k) => c.classList.toggle("now", k === i));
     if (i >= 0) { current = i; drawMap(lastC, i); }
   }
-  let lastC = null, current = 0;
-
   function draw() {
     const C = lastC = compute();
     const fl = C.fl;
-    $("#cProgNote").innerHTML = `<b>${C.prog.chords.map(x => T.parseNumeral(x).text).join(" – ")}</b> in ${T.spell(st.cKey, fl)} ${T.TONALITY[C.prog.tonality].label}. ${VL.esc(C.prog.note)} <span class="src">Source: <a href="${C.prog.src.u}" target="_blank" rel="noopener">${VL.esc(C.prog.src.t)}</a></span>`;
-    $("#cStyleNote").textContent = C.style.blurb;
-    $("#cApproachNote").textContent = st.cApproach === "key"
-      ? `One scale for the whole loop: ${homeName(C.keyHome, fl)}. ${C.keyHome.why}`
-      : `A new scale on every chord, picked for a ${T.FLAVORS[st.cFlavor].toLowerCase()} sound. This is the gospel and jazz way.`;
+    const scaleTxt = st.cApproach === "key" ? `one scale: ${homeName(C.keyHome, fl)}` : `chord by chord, ${T.FLAVORS[st.cFlavor].toLowerCase()}`;
+    $("#cSummary").innerHTML = `<b>${C.prog.chords.map(x => T.parseNumeral(x).text).join(" – ")}</b> in ${T.spell(st.cKey, fl)} ${T.TONALITY[C.prog.tonality].label} · ${VL.esc(C.style.name)} · ${VL.esc(scaleTxt)}`;
     $("#cFlavorWrap").hidden = st.cApproach === "key";
+    const mine = st.cSource === "mine";
+    $("#cRiffWrap").hidden = mine; $("#cPlaceWrap").hidden = mine; $("#arranger").hidden = !mine; $("#aBelow").hidden = !mine; $("#cToMine").hidden = mine;
 
-    // chord cards
     const cards = $("#cCards"); cards.innerHTML = "";
     C.chords.forEach((ch, i) => {
-      const info = C.infos[i], home = C.homes[i], next = C.chords[(i + 1) % C.n];
-      const clash = C.clashes[i];
-      const hard = clash.filter(c => c.hard), soft = clash.filter(c => !c.hard);
-      let sticker = "";
-      if (st.cApproach === "key" && hard.length) {
-        sticker = C.keyHome.blues
-          ? `<span class="sticker blue">blue note on purpose</span>`
-          : `<span class="sticker pink">watch this chord</span>`;
-      }
-      const clashTxt = hard.length ? (C.keyHome.blues && st.cApproach === "key"
-        ? `Your scale's ${hard.map(c => T.spell(c.pc, fl)).join(", ")} rubs against the chord's ${hard.map(c => cs(ch, c.against, fl)).join(", ")}. In blues and rock that rub is the sound.`
-        : `Your scale's ${hard.map(c => T.spell(c.pc, fl)).join(", ")} clashes with ${hard.map(c => cs(ch, c.against, fl)).join(", ")} in this chord. Land on ${cs(ch, info.targets[0].pc, fl)} instead.`) : "";
+      const info = C.infos[i], home = C.homes[i];
+      const hard = C.clashes[i].filter(c => c.hard);
+      const blue = C.keyHome.blues && st.cApproach === "key";
+      const clashShort = hard.map(c => `${T.spell(c.pc, fl)} vs ${cs(ch, c.against, fl)}`).join(", ");
       const card = document.createElement("button");
-      card.type = "button"; card.className = "ccard"; card.setAttribute("aria-label", `Hear ${T.chordName(ch, fl)} and show its notes`);
-      card.innerHTML = `${sticker}<span class="cnum">${VL.esc(ch.num.text)}</span><span class="csym">${VL.esc(T.chordName(ch, fl))}</span>
+      card.type = "button"; card.className = "ccard";
+      card.setAttribute("aria-label", `Hear ${T.chordName(ch, fl)}`);
+      if (hard.length) card.title = blue ? `Blue note: ${clashShort}. In blues and rock the rub is the sound.` : `Clash: ${clashShort}. Land on ${cs(ch, info.targets[0].pc, fl)} instead.`;
+      card.innerHTML = `${hard.length && st.cApproach === "key" ? `<span class="sticker ${blue ? "blue" : "pink"}">${blue ? "blue note" : "clash"}: ${VL.esc(clashShort)}</span>` : ""}
+        <span class="cnum">${VL.esc(ch.num.text)}</span><span class="csym">${VL.esc(T.chordName(ch, fl))}</span>
         <span class="cmode">${T.spell(ch.root, fl)} ${VL.esc(info.modeName)}</span>
-        <span class="crow"><b>Riff from</b> ${VL.esc(homeName(home, fl))}${home.tag && home.tag !== "Key" ? ` · ${VL.esc(home.tag.toLowerCase())}` : ""}</span>
-        <span class="crow"><b>Land on</b> ${info.targets.slice(0, 3).map(t => `${cs(ch, t.pc, fl)} (${t.label})`).join(", ")}</span>
-        ${info.avoid.length ? `<span class="crow"><b>Don't hold</b> ${info.avoid.map(a => `${cs(ch, a.pc, fl)} (${a.label})`).join(", ")}</span>` : ""}
-        ${clashTxt ? `<span class="crow clash">${VL.esc(clashTxt)}</span>` : ""}
-        <span class="crow nextline">Next: ${VL.esc(T.chordName(next, fl))}</span>`;
+        <span class="crow"><b>Riff</b> ${VL.esc(homeName(home, fl, true))}</span>
+        <span class="crow"><b>Land</b> ${info.targets.slice(0, 3).map(t => `${cs(ch, t.pc, fl)}<sup>${t.label}</sup>`).join(" · ")}</span>
+        ${info.avoid.length ? `<span class="crow"><b>Avoid</b> ${info.avoid.map(a => `${cs(ch, a.pc, fl)}<sup>${a.label}</sup>`).join(" · ")}</span>` : ""}`;
       card.onclick = () => { current = i; markChordStatic(i); audition(ch, C); };
       cards.appendChild(card);
     });
     drawLane(C);
     drawMap(C, Math.min(current, C.n - 1));
     markChordStatic(Math.min(current, C.n - 1));
-    const riffTxt = C.placed.length
-      ? `${C.riff.name} lands ${C.placed.length} time${C.placed.length > 1 ? "s" : ""} per loop.${C.placed.some(p => p.altered) ? " Notes with a dashed outline bend a half step to reach the next chord." : ""}`
-      : `${C.riff.name} is too long for these chord lengths. Try 2 bars per chord or a shorter riff.`;
-    $("#cRiffNote").textContent = riffTxt;
+    drawRiffNote(C);
+    if (mine) drawArrangerPanel(C);
+  }
+  function drawRiffNote(C) {
+    let t;
+    if (st.cSource === "mine") {
+      const g = C.placed.filter(p => p.rank === "gold").length, ch = C.placed.filter(p => p.chain).length;
+      t = C.placed.length ? `${C.placed.length} riff${C.placed.length > 1 ? "s" : ""} · ${g} land on a change · ${ch} chained` : "Pick a riff below, then drag it onto the lane or tap a lit spot.";
+      if (C.invalid) t += ` · ${C.invalid} no longer fit${C.invalid > 1 ? "" : "s"} these settings`;
+    } else {
+      t = C.placed.length ? `${C.riff.name} lands ${C.placed.length}× per loop.${C.placed.some(p => p.altered) ? " Dashed = bent a half step." : ""}` : `${C.riff.name} is too long for these chord lengths. Try 2 bars per chord.`;
+    }
+    $("#cRiffNote").textContent = t;
   }
   function markChordStatic(i) {
     document.querySelectorAll("#cCards .ccard").forEach((c, k) => c.classList.toggle("sel", k === i));
@@ -238,7 +254,7 @@
   }
   function audition(ch, C) {
     if (VL.audio.isRunning()) return;
-    const tl = VL.audio.timeline(), b = 60 / st.tempo;
+    const tl = VL.audio.timeline();
     const v = voice(voiceTones(ch, C.style), null);
     tl.note(0, bassOf(ch.root), 2.4, .5); tl.notes(0, v, 2.4, .42, .02);
     tl.end = 2.6;
@@ -246,11 +262,29 @@
     VL.bar.status(T.chordName(ch, C.fl), C.infos[C.chords.indexOf(ch)].modeName);
   }
 
+  /* ---------- the riff lane (and arranger surface) ---------- */
+  const STEP_PX = 7, SPOT_H = 30;
+  let geom = null;               // {px, lo, H}
+  let selRid = null;             // palette selection
+  let selItem = null;            // selected arranged item (object ref)
+  let preview = null;            // {start, cand}
+  let drag = null;               // {rid, item, orig, moved, x0, y0}
+
+  function laneGeom(C) {
+    const lane = $("#cLane");
+    const avail = lane.parentElement.clientWidth - 4;
+    const px = Math.max(34, avail > 0 ? avail / C.loopBeats : 34);
+    const H = (C.hi - C.lo) * STEP_PX + 46;
+    return { px, lo: C.lo, H, bottom: st.cSource === "mine" ? SPOT_H : 0 };
+  }
+  const brickBottom = m => ((m - geom.lo) * STEP_PX + 4 + geom.bottom) + "px";
+
   function drawLane(C) {
     const lane = $("#cLane"); lane.innerHTML = "";
-    const avail = lane.parentElement.clientWidth - 4, px = Math.max(34, avail > 0 ? avail / C.loopBeats : 34), stepPx = 7, lo = C.lo, hi = C.hi;
-    const H = (hi - lo) * stepPx + 46;
-    lane.style.width = (C.loopBeats * px) + "px"; lane.style.height = (H + 34) + "px";
+    geom = laneGeom(C);
+    const { px } = geom, mine = st.cSource === "mine";
+    lane.style.width = (C.loopBeats * px) + "px"; lane.style.height = (geom.H + 34 + geom.bottom) + "px";
+    lane.classList.toggle("editing", mine);
     C.chords.forEach((ch, i) => {
       const seg = document.createElement("div"); seg.className = "lchord";
       seg.style.left = (C.starts[i] * px) + "px"; seg.style.width = (C.beats[i] * px) + "px";
@@ -259,38 +293,249 @@
     });
     C.placed.forEach(pl => pl.notes.forEach(nt => {
       const x = ((nt.beat % C.loopBeats) + C.loopBeats) % C.loopBeats;
-      const b = document.createElement("div"); b.className = "brick lbrick" + (nt.alt ? " alt" : "");
-      b.style.setProperty("--c", C.riff.c); b.style.setProperty("--on", C.riff.on);
+      const b = document.createElement("div"); b.className = "brick lbrick" + (nt.alt ? " alt" : "") + (pl.item && pl.item === selItem ? " picked" : "");
+      b.style.setProperty("--c", pl.c); b.style.setProperty("--on", pl.on);
       b.style.left = (x * px + 1) + "px"; b.style.width = Math.max(10, nt.dur * px - 2) + "px";
-      b.style.bottom = ((nt.midi - lo) * stepPx + 4) + "px";
-      b.style.right = "auto";
+      b.style.bottom = brickBottom(nt.midi); b.style.right = "auto";
       b.textContent = nt.dur * px > 18 ? T.spell(nt.midi, C.fl) : "";
       b.title = VL.pitchName(nt.midi) + (nt.last ? " (landing note)" : "");
       lane.appendChild(b);
     }));
+    if (!mine) return;
+    // chain links and grab handles
+    C.placed.forEach((pl, pi) => {
+      const lo = Math.min(...pl.notes.map(n => n.midi)), hi = Math.max(...pl.notes.map(n => n.midi));
+      if (pl.chain) {
+        const prev = C.placed[pi - 1];
+        const lk = document.createElement("span"); lk.className = "chainlink"; lk.textContent = "link";
+        lk.style.left = ((prev.span[1] + pl.span[0]) / 2 * px - 18) + "px";
+        lk.style.bottom = brickBottom(Math.max(prev.lastMidi, pl.notes[0].midi) + 3);
+        lane.appendChild(lk);
+      }
+      const h = document.createElement("button"); h.type = "button"; h.className = "grab" + (pl.item === selItem ? " sel" : "") + (pl.rank === "gold" ? " gold" : "");
+      h.style.left = (pl.span[0] * px - 2) + "px"; h.style.width = ((pl.span[1] - pl.span[0]) * px + 4) + "px";
+      h.style.bottom = ((lo - geom.lo) * STEP_PX + geom.bottom) + "px"; h.style.height = ((hi - lo) * STEP_PX + 32) + "px";
+      const land = pl.target ? `${cs(C.chords[pl.landChord], pl.target.pc, C.fl)} (${pl.target.label}) of ${T.chordName(C.chords[pl.landChord], C.fl)}` : "";
+      h.setAttribute("aria-label", `${pl.riff.name} at beat ${pl.span[0] + 1}, lands on ${land}. Arrow keys move it, Delete removes it.`);
+      h.onpointerdown = e => startItemDrag(e, pl.item);
+      h.onkeydown = e => itemKey(e, pl.item);
+      h.onfocus = () => { if (selItem !== pl.item) { selItem = pl.item; selRid = null; refreshArranger(); setTimeout(() => focusGrab(pl.item), 0); } };
+      lane.appendChild(h);
+    });
+    drawSpots(C);
+  }
+  function focusGrab(it) {
+    const C = lastC; const i = C.placed.findIndex(p => p.item === it);
+    const g = document.querySelectorAll("#cLane .grab")[i]; if (g) g.focus({ preventScroll: true });
+  }
+  function occupiedExcept(C, except) {
+    return C.placed.filter(p => p.item !== except).map(p => ({ start: p.span[0], end: p.span[1], lastMidi: p.lastMidi }));
+  }
+  let spotCache = [];
+  function drawSpots(C) {
+    const lane = $("#cLane");
+    lane.querySelectorAll(".spotrow,.ghost").forEach(e => e.remove());
+    const rid = drag ? drag.rid : selRid;
+    spotCache = [];
+    const row = document.createElement("div"); row.className = "spotrow"; row.style.height = SPOT_H + "px";
+    lane.appendChild(row);
+    if (!rid) { row.innerHTML = `<span class="spothint">Pick a riff to see where it locks in.</span>`; return; }
+    const r = riffById(rid);
+    spotCache = T.lockSpots(r, C.ctx, occupiedExcept(C, drag ? drag.item : null));
+    if (!spotCache.length) { row.innerHTML = `<span class="spothint">No free spot fits ${VL.esc(r.name)} here. Remove a riff or try another.</span>`; return; }
+    spotCache.forEach(sp => {
+      const d = document.createElement("button"); d.type = "button"; d.className = "spot " + sp.rank;
+      d.style.left = (sp.start * geom.px - 7) + "px";
+      const lc = C.chords[sp.best.landChord];
+      d.setAttribute("aria-label", `Place ${r.name} at beat ${sp.start + 1}, lands on ${cs(lc, sp.best.target.pc, C.fl)} (${sp.best.target.label}) of ${T.chordName(lc, C.fl)}${sp.rank === "gold" ? ", right on the change" : ""}`);
+      d.title = d.getAttribute("aria-label");
+      d.onmouseenter = d.onfocus = () => showGhost(sp, r);
+      d.onmouseleave = d.onblur = () => { if (!drag) clearGhost(); };
+      d.onclick = () => placeAt(r.id, sp.start, null);
+      row.appendChild(d);
+    });
+  }
+  function showGhost(sp, r) {
+    clearGhost();
+    preview = sp;
+    const lane = $("#cLane"), C = lastC;
+    sp.best.notes.forEach(nt => {
+      const g = document.createElement("div"); g.className = "brick lbrick ghost";
+      g.style.setProperty("--c", r.c); g.style.left = (nt.beat * geom.px + 1) + "px"; g.style.width = Math.max(10, nt.dur * geom.px - 2) + "px";
+      g.style.bottom = brickBottom(nt.midi); g.style.right = "auto"; g.textContent = nt.dur * geom.px > 18 ? T.spell(nt.midi, C.fl) : "";
+      lane.appendChild(g);
+    });
+    lane.querySelectorAll(".spot").forEach(d => d.classList.toggle("on", Math.abs(parseFloat(d.style.left) - (sp.start * geom.px - 7)) < 0.5));
+  }
+  function clearGhost() { preview = null; document.querySelectorAll("#cLane .ghost").forEach(e => e.remove()); document.querySelectorAll("#cLane .spot.on").forEach(d => d.classList.remove("on")); }
+
+  function placeAt(rid, start, moving) {
+    const arr = items().filter(it => it !== moving);
+    const it = moving ? Object.assign(moving, { start, nudge: 0 }) : { rid, start, nudge: 0 };
+    arr.push(it);
+    setItems(arr);
+    selItem = it; selRid = null; preview = null;
+    if (VL.audio.isRunning()) VL.audio.stop(true);
+    draw();
+    focusGrab(it);
+  }
+
+  /* drag from the palette */
+  function startPaletteDrag(e, rid) {
+    if (e.button !== undefined && e.button !== 0) return;
+    drag = { rid, item: null, moved: false, x0: e.clientX, y0: e.clientY, pending: true };
+    bindDragDoc();
+  }
+  function startItemDrag(e, it) {
+    if (e.button !== undefined && e.button !== 0) return;
+    selItem = it; selRid = null;
+    drag = { rid: it.rid, item: it, moved: false, x0: e.clientX, y0: e.clientY, pending: true };
+    bindDragDoc();
+  }
+  function bindDragDoc() {
+    document.addEventListener("pointermove", onDragMove);
+    document.addEventListener("pointerup", onDragEnd, { once: true });
+    document.addEventListener("pointercancel", onDragEnd, { once: true });
+  }
+  function onDragMove(e) {
+    if (!drag) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 5) return;
+    if (!drag.moved) { drag.moved = true; document.body.classList.add("dragging"); if (drag.pending) { drag.pending = false; if (!drag.item) { selRid = drag.rid; selItem = null; refreshArranger(); } else drawSpots(lastC); } }
+    const lane = $("#cLane"), rect = lane.getBoundingClientRect();
+    const inside = e.clientX >= rect.left - 20 && e.clientX <= rect.right + 20 && e.clientY >= rect.top - 40 && e.clientY <= rect.bottom + 40;
+    if (!inside || !spotCache.length) { clearGhost(); return; }
+    const r = riffById(drag.rid), lead = r.beats.reduce((a, b) => a + b, 0) / 2;
+    const beat = (e.clientX - rect.left) / geom.px - lead;
+    let best = null;
+    spotCache.forEach(sp => { const d = Math.abs(sp.start - beat); if (d <= 2.5 && (!best || d < best.d)) best = { d, sp }; });
+    if (best) showGhost(best.sp, r); else clearGhost();
+  }
+  function onDragEnd() {
+    document.removeEventListener("pointermove", onDragMove);
+    document.body.classList.remove("dragging");
+    const d = drag; drag = null;
+    if (!d) return;
+    if (d.moved && preview) { placeAt(d.rid, preview.start, d.item); return; }
+    preview = null;
+    refreshArranger();
+    if (d.item) focusGrab(d.item);
+  }
+
+  /* keyboard for arranged riffs */
+  function itemKey(e, it) {
+    const C = lastC, pl = C.placed.find(p => p.item === it);
+    if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removeItem(it); return; }
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); nudge(it, e.key === "ArrowUp" ? 1 : -1); return; }
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      const spots = T.lockSpots(riffById(it.rid), C.ctx, occupiedExcept(C, it));
+      const dir = e.key === "ArrowRight" ? 1 : -1;
+      const nextSp = dir > 0 ? spots.find(s => s.start > it.start + 1e-6) : spots.slice().reverse().find(s => s.start < it.start - 1e-6);
+      if (nextSp) placeAt(it.rid, nextSp.start, it);
+    }
+  }
+  function nudge(it, d) {
+    const pl = lastC.placed.find(p => p.item === it); if (!pl) return;
+    const nv = Math.max(pl.nudgeMin, Math.min(pl.nudgeMax, (it.nudge || 0) + d));
+    if (nv === (it.nudge || 0)) return;
+    it.nudge = nv; setItems(items()); draw(); focusGrab(it);
+  }
+  function removeItem(it) { setItems(items().filter(x => x !== it)); selItem = null; draw(); }
+
+  /* ---------- arranger panel ---------- */
+  function buildArranger() {
+    const pal = $("#aPalette"); pal.innerHTML = "";
+    [["Her five blocks", RIFFS.blocks], ["Vocabulary", RIFFS.vocab]].forEach(([g, list]) => {
+      list.forEach(r => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip pchip";
+        b.textContent = r.name; b.dataset.rid = r.id; b.style.setProperty("--c", r.c);
+        b.onpointerdown = e => startPaletteDrag(e, r.id);
+        b.onclick = () => { selRid = selRid === r.id ? null : r.id; selItem = null; refreshArranger(); };
+        pal.appendChild(b);
+      });
+    });
+    $("#aSuggest").onclick = () => {
+      const C = lastC;
+      const pool = RIFFS.all.filter(r => SUGGEST_POOL.includes(r.id));
+      const existing = C.placed.map(p => ({ rid: p.item.rid, start: p.item.start, nudge: p.item.nudge, span: p.span, lastMidi: p.lastMidi }));
+      setItems(T.suggestChain(pool, C.ctx, existing)); selItem = null; draw();
+    };
+    $("#aFromAuto").onclick = copyAuto;
+    $("#cToMine").onclick = () => { copyAuto(); };
+    let armed = false;
+    $("#aClear").onclick = e => {
+      const b = e.currentTarget;
+      if (!armed) { armed = true; b.textContent = "Tap again to clear"; setTimeout(() => { armed = false; b.textContent = "Clear"; }, 3000); return; }
+      armed = false; b.textContent = "Clear"; setItems([]); selItem = null; draw();
+    };
+    $("#aUp").onclick = () => selItem && nudge(selItem, 1);
+    $("#aDown").onclick = () => selItem && nudge(selItem, -1);
+    $("#aLeft").onclick = () => selItem && itemKey({ key: "ArrowLeft", preventDefault() {} }, selItem);
+    $("#aRight").onclick = () => selItem && itemKey({ key: "ArrowRight", preventDefault() {} }, selItem);
+    $("#aRemove").onclick = () => selItem && removeItem(selItem);
+    $("#aSave").onclick = saveArrangement;
+    $("#aLoad").onclick = () => { const s = saved.find(x => x.id === $("#aSaved").value); if (s) loadArrangement(s); };
+    $("#aDelete").onclick = () => { saved = saved.filter(x => x.id !== $("#aSaved").value); persist(); drawSaved(); VL.changed(); };
+  }
+  function copyAuto() {
+    st.cSource = "auto";
+    const A = compute(); st.cSource = "mine";
+    const arr = A.placed.filter(p => p.notes[0].beat >= 0).map(p => ({ rid: A.riff.id, start: p.notes[0].beat, nudge: 0 }));
+    setItems(arr); selItem = null; VL.changed();
+    $("#cSource").value = "mine";
+  }
+  function refreshArranger() {
+    document.querySelectorAll("#aPalette .pchip").forEach(b => b.setAttribute("aria-pressed", b.dataset.rid === selRid));
+    if (lastC) { drawLane(lastC); drawArrangerPanel(lastC); }
+  }
+  function drawArrangerPanel(C) {
+    document.querySelectorAll("#aPalette .pchip").forEach(b => b.setAttribute("aria-pressed", b.dataset.rid === selRid));
+    const pl = C.placed.find(p => p.item === selItem);
+    const tools = $("#aTools");
+    tools.hidden = !pl;
+    if (pl) {
+      const lc = C.chords[pl.landChord];
+      $("#aSel").textContent = `${pl.riff.name}: beat ${pl.span[0] + 1}, lands on ${cs(lc, pl.target.pc, C.fl)} (${pl.target.label}) of ${T.chordName(lc, C.fl)}${pl.rank === "gold" ? " on the change" : ""}${pl.chain ? ", linked" : ""}`;
+      $("#aUp").disabled = (selItem.nudge || 0) >= pl.nudgeMax; $("#aDown").disabled = (selItem.nudge || 0) <= pl.nudgeMin;
+    }
+    drawSaved();
+  }
+  function drawSaved() {
+    const sel = $("#aSaved"); if (!sel) return;
+    VL.select(sel, saved.length ? saved.map(s => ({ value: s.id, label: s.name })) : [{ value: "", label: "Nothing saved yet" }]);
+    $("#aLoad").disabled = $("#aDelete").disabled = !saved.length;
+  }
+  function saveArrangement() {
+    const C = lastC, its = items();
+    if (!its.length) { $("#aName").placeholder = "Place a riff first"; return; }
+    const name = ($("#aName").value || "").trim() || `${C.prog.name} in ${T.KEYNAMES[st.cKey]}, ${C.style.name}`;
+    saved.unshift({ id: String(Date.now()), name, prog: st.cProg, key: st.cKey, style: st.cStyle, approach: st.cApproach, flavor: st.cFlavor, bars: st.cBars, items: its.map(i => ({ rid: i.rid, start: i.start, nudge: i.nudge || 0 })), ts: Date.now() });
+    saved = saved.slice(0, 40); persist(); $("#aName").value = ""; drawSaved(); VL.changed();
+  }
+  function loadArrangement(s) {
+    Object.assign(st, { cProg: s.prog, cKey: s.key, cStyle: s.style, cApproach: s.approach, cFlavor: s.flavor, cBars: s.bars, cSource: "mine" });
+    work[s.prog] = s.items.map(i => Object.assign({}, i)); persist();
+    selItem = null; syncControls(); VL.changed();
   }
 
   /* keyboard map of the current chord */
   function drawMap(C, i) {
     const el = $("#cMap"); if (!el || !C) return;
     const info = C.infos[i], home = C.homes[i], ch = C.chords[i];
-    const lo = C.lo - (C.lo % 12 === 0 ? 0 : 0), hi = C.hi;
+    const lo = C.lo, hi = C.hi;
     el.innerHTML = "";
     const whites = []; for (let m = lo; m <= hi; m++) if (![1, 3, 6, 8, 10].includes(mod(m))) whites.push(m);
     const w = 100 / whites.length;
     const tset = info.targets.slice(0, 3).map(t => t.pc), aset = info.avoid.map(a => a.pc);
     const cls = m => {
-      const pc = mod(m); const c = [];
+      const pc = mod(m), c = [];
       if (home.pcs.includes(pc)) c.push("in");
       if (tset.includes(pc)) c.push("tgt");
       if (aset.includes(pc)) c.push("avd");
       if (!info.modePcs.includes(pc) && home.pcs.includes(pc)) c.push("rub");
       return c.join(" ");
     };
-    whites.forEach(m => {
-      const k = document.createElement("div"); k.className = "wk " + cls(m);
-      k.innerHTML = `<span>${T.spell(m, C.fl)}</span>`; el.appendChild(k);
-    });
+    whites.forEach(m => { const k = document.createElement("div"); k.className = "wk " + cls(m); k.innerHTML = `<span>${T.spell(m, C.fl)}</span>`; el.appendChild(k); });
     for (let m = lo; m <= hi; m++) {
       if (![1, 3, 6, 8, 10].includes(mod(m))) continue;
       const idx = whites.indexOf(m - 1); if (idx < 0) continue;
@@ -302,25 +547,34 @@
   }
 
   /* ---------- controls ---------- */
+  const CONTROLS = [["#cProg", "cProg"], ["#cKey", "cKey", 1], ["#cStyle", "cStyle"], ["#cBars", "cBars", 1], ["#cLoops", "cLoops", 1], ["#cMode", "cMode"], ["#cApproach", "cApproach"], ["#cFlavor", "cFlavor"], ["#cRiff", "cRiff"], ["#cPlace", "cPlace"], ["#cSource", "cSource"]];
+  function syncControls() { CONTROLS.forEach(([id, key]) => { $(id).value = st[key]; }); }
   function buildControls() {
     const groups = [...new Set(D.PROGRESSIONS.map(p => p.group))];
     VL.select($("#cProg"), groups.map(g => ({ group: g, items: D.PROGRESSIONS.filter(p => p.group === g).map(p => ({ value: p.id, label: `${p.name} (${p.chords.map(x => T.parseNumeral(x).text).join("–")})` })) })), st.cProg);
     VL.select($("#cKey"), T.KEYNAMES.map((k, i) => ({ value: i, label: k })), st.cKey);
     VL.select($("#cStyle"), Object.entries(T.STYLES).map(([id, s]) => ({ value: id, label: s.name })), st.cStyle);
-    const R = riffOptions();
-    VL.select($("#cRiff"), [{ group: "Her five blocks", items: R.blocks.map(r => ({ value: r.id, label: r.name })) }, { group: "Vocabulary", items: R.vocab.map(r => ({ value: r.id, label: r.name })) }], st.cRiff);
-    [["#cProg", "cProg"], ["#cKey", "cKey", 1], ["#cStyle", "cStyle"], ["#cBars", "cBars", 1], ["#cLoops", "cLoops", 1], ["#cMode", "cMode"], ["#cApproach", "cApproach"], ["#cFlavor", "cFlavor"], ["#cRiff", "cRiff"], ["#cPlace", "cPlace"]]
-      .forEach(([id, key, num]) => {
-        const el = $(id); el.value = st[key];
-        el.addEventListener("change", e => { st[key] = num ? +e.target.value : e.target.value; if (key === "cProg") current = 0; if (VL.audio.isRunning()) VL.audio.stop(true); VL.changed(); });
-      });
+    VL.select($("#cRiff"), [{ group: "Her five blocks", items: RIFFS.blocks.map(r => ({ value: r.id, label: r.name })) }, { group: "Vocabulary", items: RIFFS.vocab.map(r => ({ value: r.id, label: r.name })) }], st.cRiff);
+    CONTROLS.forEach(([id, key, num]) => {
+      const el = $(id); el.value = st[key];
+      el.addEventListener("change", e => { st[key] = num ? +e.target.value : e.target.value; if (key === "cProg") { current = 0; selItem = null; } if (VL.audio.isRunning()) VL.audio.stop(true); VL.changed(); });
+    });
     $("#cPlay").onclick = () => VL.audio.run(buildPlan());
   }
 
   VL.changes = {
-    init() { buildControls(); draw(); VL.onSettings(draw); VL.whenShown("changes", draw); let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (lastC) drawLane(lastC); }, 200); }); },
+    init() {
+      buildControls(); buildArranger(); draw();
+      VL.onSettings(() => { syncControls(); draw(); });
+      VL.whenShown("changes", draw);
+      let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (lastC) drawLane(lastC); }, 200); });
+    },
     buildPlan,
     runPreset(p) { Object.assign(st, p); VL.changed(); VL.go("changes"); setTimeout(() => VL.audio.run(buildPlan()), 50); },
+    openArranger(prog) { Object.assign(st, { cProg: prog, cSource: "mine" }); VL.changed(); VL.go("changes"); setTimeout(() => $("#laneHead").scrollIntoView({ block: "start" }), 60); },
+    saved: () => saved,
+    editSaved(id) { const s = saved.find(x => x.id === id); if (!s) return; loadArrangement(s); VL.go("changes"); setTimeout(() => $("#laneHead").scrollIntoView({ block: "start" }), 60); },
+    playSaved(id, mode) { const s = saved.find(x => x.id === id); if (!s) return; loadArrangement(s); VL.go("changes"); setTimeout(() => VL.audio.run(buildPlan({ mode: mode || "listen" })), 60); },
     compute
   };
 })();
