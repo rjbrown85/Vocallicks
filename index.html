@@ -11,7 +11,6 @@
 <div class="wrap">
   <header class="mast">
     <h1><span class="cut c1">Vocal</span><span class="cut c2">Licks</span></h1>
-    <p class="intro">Riff drills in four chapters. Learn Crystal Cherelle's five building blocks, sing them over real chord progressions, pick up new licks, and keep a daily habit going.</p>
     <p class="marker">riffs are for the changes</p>
   </header>
 
@@ -20,13 +19,14 @@
     <button type="button" data-ch="changes"><small>02</small>Changes</button>
     <button type="button" data-ch="vocab"><small>03</small>Vocabulary</button>
     <button type="button" data-ch="session"><small>04</small>Session</button>
+    <button type="button" data-ch="guide"><small>05</small>Guide</button>
     <button type="button" class="setupbtn" id="setupToggle" aria-expanded="false" aria-controls="setupPanel"><small>tune</small>Setup</button>
   </nav>
   <div class="summary" id="setupSummary"></div>
 
   <section id="setupPanel" hidden>
     <div class="panel taped">
-      <div class="sec-head"><h2 class="tag">Setup</h2><p>These settings are shared by every chapter. Changes has its own song key.</p></div>
+      <div class="sec-head"><h2 class="tag">Setup</h2></div>
       <div class="fields">
         <label for="set">Riff scale
           <select id="set">
@@ -48,6 +48,9 @@
         <label for="sound">Sound
           <select id="sound"><option value="piano">Grand piano</option><option value="synth">Simple synth</option></select>
         </label>
+        <label for="spacing">Spacing
+          <select id="spacing"><option value="tight">Tight: short gaps</option><option value="roomy">Roomy: full bars</option></select>
+        </label>
         <label for="mode">Rounds
           <select id="mode"><option value="echo">Echo each riff back</option><option value="along">Sing along</option></select>
         </label>
@@ -55,8 +58,7 @@
       <div class="howto">
         <p class="hint" id="targetHint"></p>
         <p id="soundStatus">Loading the grand piano…</p>
-        <p>Each run opens with four clicks. In echo rounds the piano plays the riff, then leaves you the same stretch of time to sing it back. Your lowest and highest notes set where Changes and Vocabulary place every riff.</p>
-        <p>Keep riffs light while they're new and add Curbing-level volume only once they're clean. Stop if anything feels scratchy or tight.</p>
+        <button type="button" class="q wide" data-guide="g-runs" aria-label="How a run works in the Guide">How a run works</button>
       </div>
     </div>
   </section>
@@ -66,23 +68,20 @@
   <section class="chapter" id="ch-blocks">
     <div class="chead">
       <h2><span class="cn">01</span><span class="ct">Blocks</span></h2>
-      <p>Crystal Cherelle's five riff building blocks with their practice ladders, the key walk, moving the shapes, and her combinations. This is the original Riff Blocks app, unchanged.</p>
     </div>
     <div class="subnav">
       <button type="button" data-go="riffs">The five riffs</button><button type="button" data-go="walk">Key walk</button><button type="button" data-go="shapes">Move the shape</button><button type="button" data-go="combos">Combos</button><button type="button" data-go="log">Log</button>
     </div>
   <section id="riffs">
     <div class="sec-head">
-      <h2 class="tag">The five riffs</h2>
-      <p>Each riff has a five-step ladder. Tap a step to run it. Her tempo is 100 bpm, so the speed-up step climbs from your tempo toward that.</p>
+      <h2 class="tag">The five riffs <button type="button" class="q" data-guide="g-riffs" aria-label="About the five riffs in the Guide">?</button></h2>
     </div>
     <div class="stack" id="riffList"></div>
   </section>
 
   <section id="walk">
     <div class="sec-head">
-      <h2 class="tag">Key walk</h2>
-      <p>Pick a riff and the range you want it to cover. Each key opens with one bar of the chord that fits the riff, then the riff plays four times. The walk moves up a half step at a time, and after the top key it comes back down to where it started. It uses the scale and tempo from Setup.</p>
+      <h2 class="tag">Key walk <button type="button" class="q" data-guide="g-walk" aria-label="About the key walk in the Guide">?</button></h2>
     </div>
     <div class="panel taped">
       <div class="fields">
@@ -105,8 +104,7 @@
 
   <section id="shapes">
     <div class="sec-head">
-      <h2 class="tag">Move the shape</h2>
-      <p>All five riffs are anchored to the same home note. To use them while improvising, you need to start a shape anywhere in the scale. Pick a shape and the piano runs it from each scale step, lowest start first.</p>
+      <h2 class="tag">Move the shape <button type="button" class="q" data-guide="g-shapes" aria-label="About moving the shape in the Guide">?</button></h2>
     </div>
     <div class="chips" id="shapeChips"></div>
     <div class="shape-grid" id="shapeGrid"></div>
@@ -115,15 +113,13 @@
 
   <section id="combos">
     <div class="sec-head">
-      <h2 class="tag">Combos</h2>
-      <p>Her combinations chain blocks at the pitches you've been practicing, so the join between two blocks often repeats a note or skips one. Get each join clean at slow speed before you echo it at your tempo.</p>
+      <h2 class="tag">Combos <button type="button" class="q" data-guide="g-combos" aria-label="About the combos in the Guide">?</button></h2>
     </div>
     <div class="combo-grid" id="comboList"></div>
 
     <div class="panel taped combo" id="builder" style="margin-top:40px">
       <p class="kicker">Build your own</p>
       <h3>Chain up to six blocks</h3>
-      <p class="note">Tap blocks to add them in order. She tried a few orders that sounded disconnected, so listen for joins that flow.</p>
       <div class="chips" id="buildChips"></div>
       <div class="stair-wrap"><div class="stair" id="buildStair"></div></div>
       <p class="empty" id="buildEmpty">Nothing chained yet.</p>
@@ -138,7 +134,7 @@
 
   <section id="log">
     <div class="panel taped">
-      <div class="sec-head"><h2 class="tag">Log</h2><p>Rate a run when it finishes and it lands here with the key and tempo, newest first. It stays in this browser only.</p></div>
+      <div class="sec-head"><h2 class="tag">Log</h2></div>
       <ol class="log-list" id="logList"></ol>
       <p class="empty" id="logEmpty">No runs rated yet.</p>
       <button class="btn" type="button" id="clearLog">Clear log</button>
@@ -151,11 +147,10 @@
   <section class="chapter" id="ch-changes" hidden>
     <div class="chead">
       <h2><span class="cn">02</span><span class="ct">Changes</span></h2>
-      <p>Pick a progression and a style, and the piano plays the loop. Each chord card shows its mode, which pentatonic to riff from, and which notes to land on. The riff lane shows exactly where your riff falls and where it lands.</p>
     </div>
 
     <div class="panel taped">
-      <span class="part">The band</span>
+      <span class="part">The band</span> <button type="button" class="q" data-guide="g-progs" aria-label="About the progressions in the Guide">?</button>
       <div class="cgrid">
         <label for="cProg">Progression<select id="cProg"></select></label>
         <label for="cKey">Song key<select id="cKey"></select></label>
@@ -167,7 +162,7 @@
           <select id="cLoops"><option value="2">2</option><option value="4">4</option><option value="8">8</option><option value="16">16</option></select>
         </label>
       </div>
-      <span class="part">Your part</span>
+      <span class="part">Your part</span> <button type="button" class="q" data-guide="g-scales" aria-label="How the scale choice works in the Guide">?</button>
       <div class="cgrid">
         <label for="cMode">Mode
           <select id="cMode">
@@ -183,37 +178,56 @@
         <label for="cFlavor" id="cFlavorWrap">Flavor
           <select id="cFlavor"><option value="sweet">Sweet</option><option value="bluesy">Bluesy</option><option value="color">Color</option></select>
         </label>
-        <label for="cRiff">Riff<select id="cRiff"></select></label>
-        <label for="cPlace">Where riffs go
+        <label for="cSource">Riffs
+          <select id="cSource"><option value="auto">One riff, placed for me</option><option value="mine">My arrangement</option></select>
+        </label>
+        <label for="cRiff" id="cRiffWrap">Riff<select id="cRiff"></select></label>
+        <label for="cPlace" id="cPlaceWrap">Where riffs go
           <select id="cPlace"><option value="every">Into every chord</option><option value="phrase">End of every 2 chords</option><option value="loop">Once per loop</option></select>
         </label>
       </div>
-      <div class="cnotes">
-        <p id="cProgNote"></p>
-        <p id="cStyleNote"></p>
-        <p id="cApproachNote"></p>
-        <p id="cRiffNote"></p>
-      </div>
-      <div class="playrow"><button class="btn pri bigplay" type="button" id="cPlay">Play the loop</button></div>
+      <p class="cline" id="cSummary"></p>
+      <div class="playrow"><button class="btn pri bigplay" type="button" id="cPlay">Play the loop</button><button class="btn" type="button" id="cToMine">Arrange these myself</button></div>
     </div>
 
-    <div class="sec-head" style="margin-top:40px"><h2 class="tag">Riff lane</h2><p>One pass of the loop. Each riff ends on the downbeat of the next chord. A dashed outline means the landing note bends a half step outside the scale to reach the chord.</p></div>
+    <div class="sec-head lanehead" id="laneHead"><h2 class="tag">Riff lane <button type="button" class="q" data-guide="g-arrange" aria-label="How the riff lane and arranger work in the Guide">?</button></h2><p class="hint" id="cRiffNote"></p></div>
+    <div class="arranger" id="arranger" hidden>
+      <div class="apal" id="aPalette" aria-label="Riffs to place"></div>
+      <div class="row arow">
+        <button class="btn" type="button" id="aSuggest">Suggest a chain</button>
+        <button class="btn" type="button" id="aFromAuto">Copy the auto riffs</button>
+        <button class="btn" type="button" id="aClear">Clear</button>
+        <span class="klegend alegend"><span><i class="dot gold"></i>lands on the change</span><span><i class="dot green"></i>fits</span></span>
+      </div>
+    </div>
     <div class="lane-wrap"><div class="lane" id="cLane"></div></div>
+    <div class="arranger below" id="aBelow" hidden>
+      <div class="atools" id="aTools" hidden>
+        <p class="hint" id="aSel"></p>
+        <div class="row">
+          <button class="btn" type="button" id="aLeft">← Spot</button>
+          <button class="btn" type="button" id="aRight">Spot →</button>
+          <button class="btn" type="button" id="aUp">Nudge up</button>
+          <button class="btn" type="button" id="aDown">Nudge down</button>
+          <button class="btn" type="button" id="aRemove">Remove</button>
+        </div>
+      </div>
+      <div class="asave">
+        <label for="aName">Name<input id="aName" type="text" maxlength="60" placeholder="Name this arrangement"></label>
+        <button class="btn pri" type="button" id="aSave">Save</button>
+        <label for="aSaved">Saved<select id="aSaved"></select></label>
+        <button class="btn" type="button" id="aLoad">Load</button>
+        <button class="btn" type="button" id="aDelete">Delete</button>
+      </div>
+    </div>
 
-    <div class="sec-head"><h2 class="tag">Chord cards</h2><p>Tap a card to hear the chord and see its notes on the keyboard below.</p></div>
+    <div class="sec-head"><h2 class="tag">Chord cards <button type="button" class="q" data-guide="g-cards" aria-label="How to read a chord card in the Guide">?</button></h2></div>
     <div class="cards" id="cCards"></div>
 
     <div class="panel">
       <h3 id="cMapTitle" style="margin-bottom:10px"></h3>
-      <div class="klegend"><span><i style="background:#BFD3F5"></i>in your riff scale</span><span><i style="box-shadow:inset 0 0 0 3px var(--pink)"></i>land here</span><span><i style="background:#fff;text-align:center;line-height:10px;color:#B0123F">×</i>don't hold</span><span><i style="background:#FFC7DA"></i>clashes with this chord</span></div>
+      <div class="klegend"><span><i style="background:#BFD3F5"></i>riff scale</span><span><i style="box-shadow:inset 0 0 0 3px var(--pink)"></i>land</span><span><i style="background:#fff;text-align:center;line-height:10px;color:#B0123F">×</i>don't hold</span><span><i style="background:#FFC7DA"></i>clash</span></div>
       <div class="kbd-wrap"><div class="kbd" id="cMap"></div></div>
-    </div>
-
-    <div class="panel explain" style="margin-top:34px">
-      <h3>How the scale choice works</h3>
-      <p>Every chord implies a mode. A D7 in the key of G is D Mixolydian, which has the same notes as E Aeolian. Riffs use five-note pentatonic slices of that mode, and the slice matters. E minor pentatonic over D7 skips the chord's 3rd (F♯) and ♭7 (C) and includes G, which rubs against F♯. A minor pentatonic, a 5th above the root, sounds bluesy. B minor pentatonic, a 6th above, sounds sweet because it holds the 3rd.</p>
-      <p>Over minor 7 chords the whole-step-up idea works well: E minor pentatonic over Dm7 gives the Dorian color. Over a major V chord in a minor key, like E7 going to Am, the key's pentatonic has G where the chord has G♯. That card gets flagged so you land on the chord's 3rd.</p>
-      <p>Styles change the chords themselves. Blues turns every major chord into a dominant 7, and R&amp;B stacks 9ths, so the cards update when you switch styles.</p>
     </div>
   </section>
 
@@ -221,10 +235,9 @@
   <section class="chapter" id="ch-vocab" hidden>
     <div class="chead">
       <h2><span class="cn">03</span><span class="ct">Vocabulary</span></h2>
-      <p>New licks beyond the five blocks, plus a workbench of practice methods. These are common patterns, not from Crystal Cherelle's video. The ones marked "works in Changes" can be chosen as the riff over a progression.</p>
     </div>
     <div class="panel taped" id="bench">
-      <div class="sec-head"><h2 class="tag">Workbench</h2><p>Pick any riff, hers or new, and a way to practice it. It plays in your riff key from Setup.</p></div>
+      <div class="sec-head"><h2 class="tag">Workbench <button type="button" class="q" data-guide="g-methods" aria-label="About the practice methods in the Guide">?</button></h2></div>
       <div class="cgrid">
         <label for="vItem">Riff<select id="vItem"></select></label>
         <label for="vMethod">Method<select id="vMethod"></select></label>
@@ -232,20 +245,19 @@
       <div class="stair-wrap bench-stair"><div class="stair" id="vStair"></div></div>
       <p id="vMethodNote" class="hint"></p>
       <div class="playrow"><button class="btn pri bigplay" type="button" id="vGo">Start</button></div>
-      <ul class="methods" id="vMethods"></ul>
     </div>
-    <div class="stack" id="vList" style="margin-top:40px"></div>
+    <div class="sec-head" style="margin-top:40px"><h2 class="tag">Licks <button type="button" class="q" data-guide="g-vocab" aria-label="About the licks in the Guide">?</button></h2></div>
+    <div class="stack" id="vList"></div>
   </section>
 
   <!-- ============ 04 SESSION ============ -->
   <section class="chapter" id="ch-session" hidden>
     <div class="chead">
       <h2><span class="cn">04</span><span class="ct">Session</span></h2>
-      <p>A short routine that changes every day, a streak, your progress from the log, and a recorder for singing over a loop.</p>
     </div>
     <div class="stack2">
       <div class="panel taped">
-        <div class="sec-head"><h2 class="tag">Today</h2><p id="sTotal"></p></div>
+        <div class="sec-head"><h2 class="tag">Today <button type="button" class="q" data-guide="g-session" aria-label="How the routine works in the Guide">?</button></h2><p id="sTotal"></p></div>
         <div class="cgrid" style="margin-bottom:16px">
           <label for="sLen">Session length
             <select id="sLen"><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option></select>
@@ -253,18 +265,23 @@
         </div>
         <ol class="rsteps" id="sSteps"></ol>
       </div>
+      <div class="panel" id="sArrPanel">
+        <div class="sec-head"><h2 class="tag">My arrangements</h2></div>
+        <p class="empty" id="sArrEmpty">Nothing saved yet. Build one in the Changes riff lane.</p>
+        <ol class="takes arrlist" id="sArr"></ol>
+        <div class="row" style="margin-top:14px"><button class="btn" type="button" id="sArrNew">Open the arranger</button></div>
+      </div>
       <div class="panel">
         <div class="sec-head"><h2 class="tag">Streak</h2><p id="sStreak"></p></div>
         <div class="cal" id="sCal"></div>
       </div>
       <div class="panel">
-        <div class="sec-head"><h2 class="tag">Progress</h2><p>Built from your rated runs. Best tempo counts only runs you rated Clean.</p></div>
+        <div class="sec-head"><h2 class="tag">Progress</h2></div>
         <p class="empty" id="sProgEmpty">Rate a few runs and your progress shows up here.</p>
         <div class="tbl" id="sProgWrap"><table><thead><tr><th>Drill</th><th>Runs</th><th>Clean</th><th>Best clean tempo</th><th>Last</th></tr></thead><tbody id="sProg"></tbody></table></div>
       </div>
       <div class="panel taped" id="recorder">
-        <div class="sec-head"><h2 class="tag">Record a take</h2><p id="rWhat"></p></div>
-        <p>Wear headphones so the piano doesn't leak into your mic twice. The recording mixes the piano with your voice, so you can hear whether each riff landed.</p>
+        <div class="sec-head"><h2 class="tag">Record a take <button type="button" class="q" data-guide="g-record" aria-label="Recording tips in the Guide">?</button></h2><p id="rWhat"></p></div>
         <div class="cgrid" style="margin-top:14px">
           <label for="rGuide">Piano riffs while you record
             <select id="rGuide"><option value="free">None, I'll riff</option><option value="along">Quiet guide riffs</option></select>
@@ -272,22 +289,21 @@
         </div>
         <div class="playrow"><button class="btn pri bigplay" type="button" id="rStart">Record over the loop</button></div>
         <p class="warnmsg" id="rMsg" aria-live="polite"></p>
-        <p class="empty" id="rEmpty">No takes yet. Takes stay in this tab until you close it.</p>
+        <p class="empty" id="rEmpty">No takes yet. They stay in this tab until you close it.</p>
         <ol class="takes" id="rTakes"></ol>
       </div>
     </div>
   </section>
+  <!-- ============ 05 GUIDE ============ -->
+  <section class="chapter" id="ch-guide" hidden>
+    <div class="chead">
+      <h2><span class="cn">05</span><span class="ct">Guide</span></h2>
+    </div>
+    <nav class="subnav" id="guideToc" aria-label="Guide sections"></nav>
+    <div class="guide" id="guideBody"></div>
+  </section>
   </main>
 
-  <footer>
-    <h3>Credits</h3>
-    <ul>
-      <li>Riffs, names, and combinations: <a href="https://www.youtube.com/watch?v=saWqsqZUy5M" target="_blank" rel="noopener">Master 5 R&amp;B Riffs Every Pro Singer Uses</a> by Crystal Cherelle, Indie Artist School. Notes and rhythms from her <a href="https://riffbuilder.indieartistschool.com" target="_blank" rel="noopener">Riff Builder</a>. Combination pitches follow Riff Builder, which joins blocks at fixed pitch.</li>
-      <li>Progressions: <a href="https://www.youtube.com/playlist?list=PLlx2eo2tD6KpfGmE-MXwcIRQh21neAKsK" target="_blank" rel="noopener">David Bennett's chord progression videos</a>, <a href="https://human.libretexts.org/Bookshelves/Music/Music_Theory/Open_Music_Theory_2e_(Gotham_et_al.)/07%3A_Popular_Music/7.08%3A_Blues-Based_Schemas" target="_blank" rel="noopener">Open Music Theory</a>, and Tunable. Pentatonic choices over dominant chords: <a href="https://www.premierguitar.com/lessons/alternate-pentatonics" target="_blank" rel="noopener">Premier Guitar, Alternate Pentatonics</a>.</li>
-      <li>Practice methods draw on <a href="https://www.30daysinger.com/blog/how-to-practice-riffs-and-runs" target="_blank" rel="noopener">30 Day Singer</a> and <a href="https://hvsconservatory.com/how-to-do-vocal-runs/" target="_blank" rel="noopener">HVS Conservatory</a>.</li>
-      <li>Piano: <a href="https://sfzinstruments.github.io/pianos/salamander/" target="_blank" rel="noopener">Salamander Grand Piano</a> by Alexander Holm (CC BY 3.0), played through <a href="https://tonejs.github.io/" target="_blank" rel="noopener">Tone.js</a>. Fonts: Dela Gothic One, Courier Prime, Permanent Marker.</li>
-    </ul>
-  </footer>
 </div>
 
 <div class="bar" id="bar" hidden>
@@ -299,10 +315,12 @@
       <button class="btn" type="button" data-r="Almost">Almost</button>
       <button class="btn" type="button" data-r="Messy">Messy</button>
       <button class="btn" type="button" id="bSkip">Skip</button>
+      <button class="btn next" type="button" id="bNext" hidden>Next step</button>
     </div>
     <div class="row" id="bBump" hidden>
       <button class="btn" type="button" id="bumpBtn">Raise tempo</button>
       <button class="btn" type="button" id="bDone">Done</button>
+      <button class="btn next" type="button" id="bNext2" hidden>Next step</button>
     </div>
   </div>
 </div>
@@ -316,6 +334,7 @@
 <script src="js/changes.js"></script>
 <script src="js/vocab.js"></script>
 <script src="js/session.js"></script>
+<script src="js/guide.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
