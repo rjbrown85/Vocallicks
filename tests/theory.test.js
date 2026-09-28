@@ -37,6 +37,20 @@ const c = T.chordScale(C, null, "major", 0);
 ok(c.avoid.some(a => a.pc === 5), "Cmaj7 avoids F");
 ok(c.targets[0].pc === 4, "Cmaj7 first target is E (the 3rd)");
 
+/* 4b. Wonderwall in E Dorian: the major IV (A) rubs against the key pentatonic's D */
+const ww = PROGRESSIONS.find(p => p.id === "wonderwall");
+const wctx = T.loopContext(ww, { key: 4, style: "rock", approach: "key", flavor: "sweet", lo: 50, hi: 72, bars: 1 });
+ok(T.chordName(wctx.chords[3]) === "A", "Wonderwall IV in E is A major, got " + T.chordName(wctx.chords[3]));
+ok(T.clashes(wctx.keyHome, wctx.chords[3], wctx.infos[3]).some(c => c.pc === 2) && wctx.infos[3].avoid.some(a => a.pc === 2), "Wonderwall: D rubs against A major's C# and is flagged as a note not to hold");
+ok(!T.keyUsesFlats(4, "dorian"), "E Dorian spells with sharps");
+/* 4c. Scale runs use the full scale: the five-note run over Am in C major includes B and F where it fits */
+const five = D2.VOCAB.find(v => v.id === "fivemin");
+const axis = PROGRESSIONS.find(p => p.id === "axis");
+const actx = T.loopContext(axis, { key: 0, style: "rock", approach: "key", flavor: "sweet", lo: 50, hi: 74, bars: 1 });
+const fsp = T.lockSpots({ id: "fivemin", kind: "scale", steps: five.steps, beats: five.beats }, actx, []);
+ok(fsp.length > 0, "five-note run finds lock spots over the Axis");
+ok(fsp.every(sp => sp.best.notes.every(n => actx.keyScale.includes(T.mod(n.midi)))), "five-note run stays in C major over the Axis in C");
+
 /* 5. Every progression x style x key: homes fit, targets are chord tones, landings land */
 const SHAPES = { qd: [0, -1, -2], sl: [-2, -1, 0], qdt: [0, -1, -2, -3], skip: [1, 0, -1, -2, -3] };
 let combos = 0, altered = 0, landings = 0;
