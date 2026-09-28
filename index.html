@@ -162,6 +162,34 @@
           <select id="cLoops"><option value="2">2</option><option value="4">4</option><option value="8">8</option><option value="16">16</option></select>
         </label>
       </div>
+      <div class="row pbrow"><button class="btn" type="button" id="pbNew">Make my own</button><button class="btn" type="button" id="pbEdit" hidden>Edit this one</button></div>
+      <div class="pbuilder" id="pbPanel" hidden>
+        <div class="cgrid">
+          <label for="pbName">Name<input id="pbName" type="text" maxlength="40" placeholder="My progression"></label>
+          <label for="pbTon">Feel
+            <select id="pbTon">
+              <option value="major">Major</option>
+              <option value="minor">Minor</option>
+              <option value="dorian">Dorian (minor with a major IV)</option>
+              <option value="mixolydian">Mixolydian (major with a ♭VII)</option>
+              <option value="blues">Blues</option>
+            </select>
+          </label>
+        </div>
+        <div class="cgrid pbslots" id="pbSlots"></div>
+        <div class="row">
+          <button class="btn" type="button" id="pbAdd">+ Chord</button>
+          <button class="btn" type="button" id="pbDel">− Chord</button>
+          <label class="chk"><input type="checkbox" id="pbHold"> Hold the last chord for 2 bars</label>
+        </div>
+        <p class="cline" id="pbPreview"></p>
+        <div class="row">
+          <button class="btn" type="button" id="pbHear">Hear it</button>
+          <button class="btn pri" type="button" id="pbSave">Save and use</button>
+          <button class="btn" type="button" id="pbRemove" hidden>Delete</button>
+          <button class="btn" type="button" id="pbClose">Close</button>
+        </div>
+      </div>
       <span class="part">Your part</span> <button type="button" class="q" data-guide="g-scales" aria-label="How the scale choice works in the Guide">?</button>
       <div class="cgrid">
         <label for="cMode">Mode
@@ -248,6 +276,8 @@
     </div>
     <div class="sec-head" style="margin-top:40px"><h2 class="tag">Licks <button type="button" class="q" data-guide="g-vocab" aria-label="About the licks in the Guide">?</button></h2></div>
     <div class="stack" id="vList"></div>
+    <div class="sec-head" style="margin-top:40px"><h2 class="tag">Scale runs <button type="button" class="q" data-guide="g-runs2" aria-label="About the scale runs in the Guide">?</button></h2></div>
+    <div class="stack" id="vRuns"></div>
   </section>
 
   <!-- ============ 04 SESSION ============ -->
