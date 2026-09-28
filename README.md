@@ -4,14 +4,14 @@ A practice app for singing R&B riffs, built around Crystal Cherelle's five riff 
 
 **Live app:** [rjbrown85.github.io/Vocallicks](https://rjbrown85.github.io/Vocallicks/)
 
-## Five chapters
+## Four chapters and one Setup
 
-1. **Blocks.** The original Riff Blocks drills: the five riffs with five-step ladders, the key walk, moving each shape through the scale, her combinations, a combo builder, and the log.
-2. **Changes.** Thirty-four progressions (pop and R&B plus rock and blues, most from David Bennett's videos, including Wonderwall, Purple Rain, Pachelbel's Canon, and Where Is My Mind), plus **Make my own** for building your own two- to eight-chord loop in a major, minor, Dorian, Mixolydian, or blues feel, in six styles: rock, pop, R&B/neo-soul, gospel, blues, and jazz. Each chord card shows the mode it implies, which minor pentatonic to riff from, which notes to land on, and which notes not to hold. Riffs are placed so their last note lands on a chord tone of the next chord. Choose one scale for the whole key or a new scale on every chord. In **My arrangement** mode the riff lane becomes an arranger: pick or drag riffs onto lock spots that the app has checked against every chord they sound over (gold spots land on a chord change on its 3rd or 7th, green spots fit and end on a chord tone), chain riffs into longer phrases, ask for a suggested chain, and save arrangements by name.
-3. **Vocabulary.** Thirteen more licks (cascades, turns, climbs, triplets, enclosures, neighbor flips, rising 3s, blue-note slide and turn, gospel descent, arpeggio runs), five scale runs (pentatonic up and down, pentatonic fall, five-note minor and major, natural minor octave), some of which also work over progressions, and a workbench of practice methods: doo first, chunks, build from the end, move the accent, rhythm swap, and speed up.
-4. **Session.** A daily routine that rotates riffs and progressions (with an arranging step and a Next button that moves you through it), your saved arrangements, a 14-day streak, progress from your rated runs, and a recorder that mixes your voice with the loop.
+1. **Riffs.** Crystal Cherelle's five riffs with five-step ladders, the key walk, moving each shape through the scale, her combinations and a combo builder, then a workbench of practice methods (doo first, chunks, build from the end, move the accent, rhythm swap, speed up), thirteen more licks, five scale runs, and the log.
+2. **Changes.** Forty-two progressions in three groups: pop and R&B, rock and blues (most from David Bennett's videos, including Wonderwall, Purple Rain, and Pachelbel's Canon), and '60s classics (House of the Rising Sun, Louie Louie, Twist and Shout, Brown Eyed Girl, California Dreamin', Grapevine, Dock of the Bay, and the Hey Jude outro). **Make my own** builds a two- to eight-chord loop in a major, minor, Dorian, Mixolydian, or blues feel. Six styles: rock, pop, R&B/neo-soul, gospel, blues, and jazz. Each chord card shows the mode it implies, which minor pentatonic to riff from, which notes to land on, and which notes not to hold. In **My arrangement** mode the riff lane becomes an arranger with lock spots checked against every chord a riff sounds over (gold spots land on a chord change on its 3rd or 7th), chained riffs, suggested chains, and saved arrangements.
+3. **Session.** A daily routine that rotates riffs and progressions, with a Next button that moves you through it, plus your saved arrangements, a 14-day streak, progress from your rated runs, and a recorder that mixes your voice with the loop.
+4. **Guide.** Every explanation in one place, so the working screens stay short. The small **?** buttons jump to the matching entry.
 
-5. **Guide.** Every explanation in one place, so the working screens stay short. The small **?** buttons jump to the matching entry.
+**Setup** is one drawer for every setting: your voice and riffs (scale, riff key, tempo, range, sound, spacing, rounds), the band for Changes (progression, song key, style, bars, loops), and your part (mode, scale choice, riffs). The layout uses the full width of the screen.
 
 Drills use **Tight** spacing by default: each round lasts the riff plus one beat, and the count-in is two clicks. Switch to **Roomy** in Setup for the original whole-bar rounds.
 
@@ -34,11 +34,11 @@ js/theory.js        chords, styles, chord-scale matching, riff landing, arranger
 js/data.js          riffs, combos, progressions, vocabulary, practice methods
 js/core.js          settings, log, now-playing bar, chapter router
 js/audio.js         piano sampler, synth fallback, timeline scheduler
-js/blocks.js        chapter 01
+js/blocks.js        chapter 01, first half (her five riffs, key walk, shapes, combos, log)
+js/vocab.js         chapter 01, second half (workbench, licks, scale runs)
 js/changes.js       chapter 02
-js/vocab.js         chapter 03
-js/session.js       chapter 04
-js/guide.js         chapter 05 (built from data.js and theory.js)
+js/session.js       chapter 03
+js/guide.js         chapter 04 (built from data.js and theory.js)
 js/app.js           startup and the Setup drawer
 tests/theory.test.js  node tests/theory.test.js
 tools/bundle.py     builds a single-file copy for a claude.ai preview

@@ -7,7 +7,7 @@
 <meta name="description" content="Practice R&amp;B riffs as building blocks, then sing them over chord progressions in any style.">
 <link rel="stylesheet" href="css/zine.css">
 </head>
-<body data-chapter="blocks">
+<body data-chapter="riffs">
 <div class="wrap">
   <header class="mast">
     <h1><span class="cut c1">Vocal</span><span class="cut c2">Licks</span></h1>
@@ -15,34 +15,36 @@
   </header>
 
   <nav class="chapnav" aria-label="Chapters">
-    <button type="button" data-ch="blocks"><small>01</small>Blocks</button>
+    <button type="button" data-ch="riffs"><small>01</small>Riffs</button>
     <button type="button" data-ch="changes"><small>02</small>Changes</button>
-    <button type="button" data-ch="vocab"><small>03</small>Vocabulary</button>
-    <button type="button" data-ch="session"><small>04</small>Session</button>
-    <button type="button" data-ch="guide"><small>05</small>Guide</button>
+    <button type="button" data-ch="session"><small>03</small>Session</button>
+    <button type="button" data-ch="guide"><small>04</small>Guide</button>
     <button type="button" class="setupbtn" id="setupToggle" aria-expanded="false" aria-controls="setupPanel"><small>tune</small>Setup</button>
   </nav>
   <div class="summary" id="setupSummary"></div>
 
   <section id="setupPanel" hidden>
     <div class="panel taped">
-      <div class="sec-head"><h2 class="tag">Setup</h2></div>
-      <div class="fields">
-        <label for="set">Riff scale
+      <div class="sec-head"><h2 class="tag">Setup</h2><p class="hint">Every setting in one place. Changes apply right away.</p></div>
+      <div class="sgroups">
+        <div class="sgroup">
+          <h3 class="part">Your voice &amp; riffs</h3>
+          <div class="fields">
+        <label for="set" class="full">Riff scale
           <select id="set">
-            <option value="minor">Minor pentatonic (her default)</option>
+            <option value="minor">Minor pentatonic (default)</option>
             <option value="blues">Blues</option>
             <option value="major">Major</option>
             <option value="majpent">Major pentatonic</option>
           </select>
         </label>
         <label for="key">Riff key<select id="key"></select></label>
-        <label for="tempo"><span>Tempo: <span id="tempoOut">70</span> bpm</span>
+        <label for="tempo" class="full"><span>Tempo: <span id="tempoOut">70</span> bpm</span>
           <input type="range" id="tempo" min="40" max="120" step="5" value="70">
         </label>
         <label for="low">Lowest note<select id="low"></select></label>
         <label for="cap">Highest note today<select id="cap"></select></label>
-        <label for="oct">Octave (Blocks)
+        <label for="oct">Octave (her five riffs)
           <select id="oct"><option value="0">As written</option><option value="-12">One octave down</option></select>
         </label>
         <label for="sound">Sound
@@ -54,29 +56,73 @@
         <label for="mode">Rounds
           <select id="mode"><option value="echo">Echo each riff back</option><option value="along">Sing along</option></select>
         </label>
+          </div>
+        </div>
+        <div class="sgroup" id="setupBand">
+          <h3 class="part">The band <span class="ptag">Changes</span> <button type="button" class="q" data-guide="g-progs" aria-label="About the progressions in the Guide">?</button></h3>
+          <div class="fields">
+        <label for="cProg" class="full">Progression<select id="cProg"></select><span class="selnote" id="cProgNote"></span></label>
+        <label for="cKey">Song key<select id="cKey"></select></label>
+        <label for="cStyle">Style<select id="cStyle"></select></label>
+        <label for="cBars">Bars per chord
+          <select id="cBars"><option value="1">1 bar</option><option value="2">2 bars</option></select>
+        </label>
+        <label for="cLoops">Loops
+          <select id="cLoops"><option value="2">2</option><option value="4">4</option><option value="8">8</option><option value="16">16</option></select>
+        </label>
+          </div>
+        </div>
+        <div class="sgroup">
+          <h3 class="part">Your part <span class="ptag">Changes</span> <button type="button" class="q" data-guide="g-scales" aria-label="How the scale choice works in the Guide">?</button></h3>
+          <div class="fields">
+        <label for="cMode" class="full">Mode
+          <select id="cMode">
+            <option value="listen">Listen (piano riffs)</option>
+            <option value="along">Sing along (quiet riffs)</option>
+            <option value="echo">Echo (piano, then you)</option>
+            <option value="free">Free riff (loop only)</option>
+          </select>
+        </label>
+        <label for="cApproach">Scale choice
+          <select id="cApproach"><option value="key">One scale for the key</option><option value="chord">Chord by chord</option></select>
+        </label>
+        <label for="cFlavor" id="cFlavorWrap">Flavor
+          <select id="cFlavor"><option value="sweet">Sweet</option><option value="bluesy">Bluesy</option><option value="color">Color</option></select>
+        </label>
+        <label for="cSource">Riffs
+          <select id="cSource"><option value="auto">One riff, placed for me</option><option value="mine">My arrangement</option></select>
+        </label>
+        <label for="cRiff" id="cRiffWrap">Riff<select id="cRiff"></select></label>
+        <label for="cPlace" id="cPlaceWrap">Where riffs go
+          <select id="cPlace"><option value="every">Into every chord</option><option value="phrase">End of every 2 chords</option><option value="loop">Once per loop</option></select>
+        </label>
+          </div>
+        </div>
       </div>
       <div class="howto">
         <p class="hint" id="targetHint"></p>
         <p id="soundStatus">Loading the grand piano…</p>
         <button type="button" class="q wide" data-guide="g-runs" aria-label="How a run works in the Guide">How a run works</button>
       </div>
+      <div class="row setupfoot"><button class="btn pri" type="button" id="setupDone">Done</button></div>
+
     </div>
   </section>
 
   <main>
-  <!-- ============ 01 BLOCKS ============ -->
-  <section class="chapter" id="ch-blocks">
+  <!-- ============ 01 RIFFS (her blocks + vocabulary) ============ -->
+  <section class="chapter" id="ch-riffs">
     <div class="chead">
-      <h2><span class="cn">01</span><span class="ct">Blocks</span></h2>
+      <h2><span class="cn">01</span><span class="ct">Riffs</span></h2>
     </div>
     <div class="subnav">
-      <button type="button" data-go="riffs">The five riffs</button><button type="button" data-go="walk">Key walk</button><button type="button" data-go="shapes">Move the shape</button><button type="button" data-go="combos">Combos</button><button type="button" data-go="log">Log</button>
+      <button type="button" data-go="riffs">The five riffs</button><button type="button" data-go="walk">Key walk</button><button type="button" data-go="shapes">Move the shape</button><button type="button" data-go="combos">Combos</button><button type="button" data-go="bench">Workbench</button><button type="button" data-go="licks">Licks</button><button type="button" data-go="runs">Scale runs</button><button type="button" data-go="log">Log</button>
     </div>
   <section id="riffs">
     <div class="sec-head">
       <h2 class="tag">The five riffs <button type="button" class="q" data-guide="g-riffs" aria-label="About the five riffs in the Guide">?</button></h2>
     </div>
-    <div class="stack" id="riffList"></div>
+    <div class="stack cardgrid" id="riffList"></div>
   </section>
 
   <section id="walk">
@@ -85,7 +131,7 @@
     </div>
     <div class="panel taped">
       <div class="fields">
-        <label for="wItem">Riff or combo<select id="wItem"></select></label>
+        <label for="wItem" class="full">Riff or combo<select id="wItem"></select></label>
         <label for="wLow">Lowest note<select id="wLow"></select></label>
         <label for="wHigh">Highest note<select id="wHigh"></select></label>
         <label for="wReps">Times per key
@@ -132,6 +178,23 @@
     </div>
   </section>
 
+  <section id="vocab">
+    <div class="panel taped" id="bench">
+      <div class="sec-head"><h2 class="tag">Workbench <button type="button" class="q" data-guide="g-methods" aria-label="About the practice methods in the Guide">?</button></h2></div>
+      <div class="cgrid">
+        <label for="vItem">Riff<select id="vItem"></select></label>
+        <label for="vMethod">Method<select id="vMethod"></select></label>
+      </div>
+      <div class="stair-wrap bench-stair"><div class="stair" id="vStair"></div></div>
+      <p id="vMethodNote" class="hint"></p>
+      <div class="playrow"><button class="btn pri bigplay" type="button" id="vGo">Start</button></div>
+    </div>
+    <div class="sec-head" id="licks"><h2 class="tag">Licks <button type="button" class="q" data-guide="g-vocab" aria-label="About the licks in the Guide">?</button></h2></div>
+    <div class="stack cardgrid" id="vList"></div>
+    <div class="sec-head" id="runs"><h2 class="tag">Scale runs <button type="button" class="q" data-guide="g-runs2" aria-label="About the scale runs in the Guide">?</button></h2></div>
+    <div class="stack cardgrid" id="vRuns"></div>
+  </section>
+
   <section id="log">
     <div class="panel taped">
       <div class="sec-head"><h2 class="tag">Log</h2></div>
@@ -149,20 +212,9 @@
       <h2><span class="cn">02</span><span class="ct">Changes</span></h2>
     </div>
 
-    <div class="panel taped">
-      <span class="part">The band</span> <button type="button" class="q" data-guide="g-progs" aria-label="About the progressions in the Guide">?</button>
-      <div class="cgrid">
-        <label for="cProg">Progression<select id="cProg"></select></label>
-        <label for="cKey">Song key<select id="cKey"></select></label>
-        <label for="cStyle">Style<select id="cStyle"></select></label>
-        <label for="cBars">Bars per chord
-          <select id="cBars"><option value="1">1 bar</option><option value="2">2 bars</option></select>
-        </label>
-        <label for="cLoops">Loops
-          <select id="cLoops"><option value="2">2</option><option value="4">4</option><option value="8">8</option><option value="16">16</option></select>
-        </label>
-      </div>
-      <div class="row pbrow"><button class="btn" type="button" id="pbNew">Make my own</button><button class="btn" type="button" id="pbEdit" hidden>Edit this one</button></div>
+    <div class="panel taped cpanel">
+      <p class="cline" id="cSummary" role="button" tabindex="0" title="Change these in Setup"></p>
+      <div class="playrow"><button class="btn pri bigplay" type="button" id="cPlay">Play the loop</button><button class="btn" type="button" id="cToMine">Arrange these myself</button><button class="btn" type="button" id="cOpenSetup">Change progression, key, style…</button><button class="btn" type="button" id="pbNew">Make my own</button><button class="btn" type="button" id="pbEdit" hidden>Edit this one</button></div>
       <div class="pbuilder" id="pbPanel" hidden>
         <div class="cgrid">
           <label for="pbName">Name<input id="pbName" type="text" maxlength="40" placeholder="My progression"></label>
@@ -190,32 +242,6 @@
           <button class="btn" type="button" id="pbClose">Close</button>
         </div>
       </div>
-      <span class="part">Your part</span> <button type="button" class="q" data-guide="g-scales" aria-label="How the scale choice works in the Guide">?</button>
-      <div class="cgrid">
-        <label for="cMode">Mode
-          <select id="cMode">
-            <option value="listen">Listen: piano riffs over the loop</option>
-            <option value="along">Sing along: quieter piano riffs</option>
-            <option value="echo">Echo: riff loop, then your loop</option>
-            <option value="free">Free: loop only, you riff</option>
-          </select>
-        </label>
-        <label for="cApproach">Scale choice
-          <select id="cApproach"><option value="key">One scale for the key</option><option value="chord">Chord by chord</option></select>
-        </label>
-        <label for="cFlavor" id="cFlavorWrap">Flavor
-          <select id="cFlavor"><option value="sweet">Sweet</option><option value="bluesy">Bluesy</option><option value="color">Color</option></select>
-        </label>
-        <label for="cSource">Riffs
-          <select id="cSource"><option value="auto">One riff, placed for me</option><option value="mine">My arrangement</option></select>
-        </label>
-        <label for="cRiff" id="cRiffWrap">Riff<select id="cRiff"></select></label>
-        <label for="cPlace" id="cPlaceWrap">Where riffs go
-          <select id="cPlace"><option value="every">Into every chord</option><option value="phrase">End of every 2 chords</option><option value="loop">Once per loop</option></select>
-        </label>
-      </div>
-      <p class="cline" id="cSummary"></p>
-      <div class="playrow"><button class="btn pri bigplay" type="button" id="cPlay">Play the loop</button><button class="btn" type="button" id="cToMine">Arrange these myself</button></div>
     </div>
 
     <div class="sec-head lanehead" id="laneHead"><h2 class="tag">Riff lane <button type="button" class="q" data-guide="g-arrange" aria-label="How the riff lane and arranger work in the Guide">?</button></h2><p class="hint" id="cRiffNote"></p></div>
@@ -259,31 +285,10 @@
     </div>
   </section>
 
-  <!-- ============ 03 VOCABULARY ============ -->
-  <section class="chapter" id="ch-vocab" hidden>
-    <div class="chead">
-      <h2><span class="cn">03</span><span class="ct">Vocabulary</span></h2>
-    </div>
-    <div class="panel taped" id="bench">
-      <div class="sec-head"><h2 class="tag">Workbench <button type="button" class="q" data-guide="g-methods" aria-label="About the practice methods in the Guide">?</button></h2></div>
-      <div class="cgrid">
-        <label for="vItem">Riff<select id="vItem"></select></label>
-        <label for="vMethod">Method<select id="vMethod"></select></label>
-      </div>
-      <div class="stair-wrap bench-stair"><div class="stair" id="vStair"></div></div>
-      <p id="vMethodNote" class="hint"></p>
-      <div class="playrow"><button class="btn pri bigplay" type="button" id="vGo">Start</button></div>
-    </div>
-    <div class="sec-head" style="margin-top:40px"><h2 class="tag">Licks <button type="button" class="q" data-guide="g-vocab" aria-label="About the licks in the Guide">?</button></h2></div>
-    <div class="stack" id="vList"></div>
-    <div class="sec-head" style="margin-top:40px"><h2 class="tag">Scale runs <button type="button" class="q" data-guide="g-runs2" aria-label="About the scale runs in the Guide">?</button></h2></div>
-    <div class="stack" id="vRuns"></div>
-  </section>
-
-  <!-- ============ 04 SESSION ============ -->
+  <!-- ============ 03 SESSION ============ -->
   <section class="chapter" id="ch-session" hidden>
     <div class="chead">
-      <h2><span class="cn">04</span><span class="ct">Session</span></h2>
+      <h2><span class="cn">03</span><span class="ct">Session</span></h2>
     </div>
     <div class="stack2">
       <div class="panel taped">
@@ -324,10 +329,10 @@
       </div>
     </div>
   </section>
-  <!-- ============ 05 GUIDE ============ -->
+  <!-- ============ 04 GUIDE ============ -->
   <section class="chapter" id="ch-guide" hidden>
     <div class="chead">
-      <h2><span class="cn">05</span><span class="ct">Guide</span></h2>
+      <h2><span class="cn">04</span><span class="ct">Guide</span></h2>
     </div>
     <nav class="subnav" id="guideToc" aria-label="Guide sections"></nav>
     <div class="guide" id="guideBody"></div>
