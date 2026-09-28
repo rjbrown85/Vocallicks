@@ -434,3 +434,106 @@ select{text-overflow:ellipsis;white-space:nowrap;overflow:hidden;padding-right:3
 .cgrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr))}
 .selnote{font-family:"Courier Prime","Courier New",monospace;font-weight:700;font-size:.92rem;color:var(--soft)}
 @media (max-width:560px){select{font-size:.95rem}}
+
+/* ===== v6: less scrolling ===== */
+/* smaller headers so content starts higher */
+.mast{margin-bottom:8px}
+.mast h1{font-size:clamp(1.6rem,4.5vw,2.3rem)}
+.mast .marker{font-size:1rem}
+.chapnav{padding-block:8px;margin-bottom:10px}
+.summary{margin-bottom:12px}
+.chead{margin:0 0 12px}
+.chead h2{font-size:clamp(1.7rem,5vw,2.6rem)}
+.chead h2 .ct{box-shadow:4px 4px 0 var(--pink)}
+.tag{font-size:clamp(1.25rem,3.2vw,1.7rem);box-shadow:4px 4px 0 var(--pink)}
+section{margin-bottom:34px}
+.sec-head{margin-bottom:12px}
+
+/* tabs (Riffs sections, Guide topics): one section on screen at a time */
+.tabs2{position:sticky;top:var(--navh,64px);z-index:15;background:var(--paper);padding:8px 0;margin:0 0 18px}
+.tabs2 button[aria-selected="true"]{background:var(--ink);color:var(--sheet);border-style:solid}
+#ch-guide .tabs2{margin:0 0 18px}
+.guide{display:block}
+
+/* Changes: slim header, cards next to the keyboard map */
+.cpanel{margin:0 0 16px;display:grid;gap:10px}
+.cpanel .cline{font-size:1.05rem}
+.ctools .btn{font-size:.95rem;padding:8px 13px}
+.cmapgrid{display:grid;gap:18px 26px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1200px){.cmapgrid{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start}.cmapgrid .panel{margin-top:58px}}
+.ahint{margin:0}
+.arranger{margin-bottom:10px}
+
+/* the dock: fixed at the bottom of Changes */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:38;background:var(--sheet);border-top:3px solid var(--ink);box-shadow:0 -4px 0 rgba(22,22,22,.12);
+  padding:10px clamp(12px,3vw,48px) calc(10px + env(safe-area-inset-bottom,0px))}
+.dock-in{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end}
+.dfield{display:grid;gap:2px;font-size:.78rem;min-width:0}
+.dfield > span{font-family:"Dela Gothic One","Arial Black",sans-serif;font-weight:400}
+.dfield select{padding:6px 28px 6px 8px;font-size:.95rem;width:auto;max-width:100%}
+.dwide select{min-width:230px}
+.dplay{font-size:1.15rem;padding:10px 18px;min-width:118px}
+.dplay.stop{background:var(--ink);color:var(--sheet)}
+.dstep{display:flex;align-items:center;gap:6px}
+.dstep .btn{padding:4px 11px;font-size:1.05rem;box-shadow:2px 2px 0 var(--ink)}
+.dstep b{font-family:"Dela Gothic One","Arial Black",sans-serif;font-weight:400;min-width:2.2em;text-align:center}
+.dsetup{margin-left:auto}
+body.hasdock .wrap{padding-bottom:calc(var(--dockh,90px) + 110px)}
+body.hasdock .bar{bottom:var(--dockh,90px)}
+@media (max-width:760px){.dopt{display:none}.dwide select{min-width:0;width:100%}.dwide{flex:1 1 160px}.dsetup{margin-left:0}}
+/* v6 tightening */
+.dock select{width:auto}
+.dfield{flex:0 0 auto}
+.dwide select{min-width:200px;max-width:300px}
+#ch-changes .chead{display:none}
+.cpanel{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.cpanel .cline{flex:1 1 380px}
+.cpanel .ctools{flex:0 0 auto}
+.cpanel .pbuilder{flex:1 1 100%}
+.lanehead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:8px}
+.lanehead .tag{font-size:1.25rem}
+.apal{gap:6px;align-items:center}
+.plabel{flex-basis:auto;margin:0 2px 0 8px;font-size:.8rem}
+.plabel:first-child{margin-left:0}
+.pchip{font-size:.82rem;padding:4px 9px;border-left-width:7px}
+.arow .btn{font-size:.88rem;padding:6px 11px}
+.arranger{gap:8px}
+@media (max-width:760px){#dock label[for="dMode"]{display:none}}
+.dwide select{max-width:260px}
+.dsetup{padding:8px 14px;font-size:.95rem}
+.apick{display:none}
+@media (max-width:760px){
+  .apal{display:none}
+  .apick{display:grid;gap:4px;font-size:.9rem}
+  .dfield > span{display:none}
+  .dock{padding-top:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+  .dock-in{align-items:center;gap:6px}
+  .dplay{min-width:0;padding:8px 12px;font-size:1rem}
+  .dstep .btn{padding:3px 9px}
+  .dsetup{padding:7px 10px;font-size:.9rem}
+  .chapnav button small{display:none}
+  .chapnav button{padding:5px 9px;font-size:.9rem}
+  .arow .btn{font-size:.82rem;padding:5px 9px}
+  .alegend{display:none}
+}
+.dock select{font-size:.86rem;padding:5px 24px 5px 7px}
+.dock-in{gap:6px 10px}
+.dwide select{min-width:180px;max-width:230px}
+.dwide select{min-width:170px;max-width:200px}
+#dRiffs{max-width:225px}
+.dwide select{min-width:170px;max-width:250px}
+@media (max-width:760px){.dwide{flex:1 1 120px;min-width:0}.dwide select{min-width:0;max-width:100%;width:100%}.dock-in{flex-wrap:wrap}}
+.cpanel .ctools{flex:1 1 auto;min-width:0;flex-wrap:wrap}.cpanel .cline{min-width:0}@media (max-width:560px){.cpanel .cline{flex-basis:100%}}
+@media (max-width:760px){.dwide{flex:1 1 100%;order:-1}}
+/* the tab bar and chapter nav already say where you are */
+.chapter .chead{display:none}
+[data-tab] > .sec-head .tag,[data-tab] > .panel > .sec-head .tag{font-size:1.15rem;box-shadow:3px 3px 0 var(--pink)}
+.cardgrid .facts{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px;margin-bottom:10px}
+.cardgrid dd{font-size:1.02rem}
+.cardgrid .step{padding:8px 9px 10px}
+.cardgrid .step .n{font-size:1.2rem}
+.cardgrid .riff-head{margin-bottom:8px}
+.cardgrid .stair-wrap{margin-bottom:10px}
+.cardgrid .panel{padding:20px 18px 18px}
+@media (max-width:760px){.dsetup{display:none}}
+.combo-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,400px),1fr))}
