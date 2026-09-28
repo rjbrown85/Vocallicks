@@ -376,3 +376,15 @@ body.dragging .grab{cursor:grabbing}
 .gcredits{margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:70ch}
 #ch-guide .subnav{margin:-4px 0 26px}
 .guide .gsec{margin:0}
+.plabel{flex-basis:100%;font-family:"Dela Gothic One","Arial Black",sans-serif;font-size:.85rem;color:var(--soft);margin-top:2px}
+.plabel:first-child{margin-top:0}
+
+/* v4: progression builder */
+.pbrow{margin-top:14px}
+.pbrow .btn,.pbuilder .btn{font-size:.95rem;padding:8px 13px}
+.pbuilder{display:grid;gap:14px;margin-top:14px;padding:16px;border:2.5px dashed var(--ink);background:color-mix(in srgb,var(--yellow) 12%,var(--sheet))}
+.pbuilder input[type=text]{width:100%;font:inherit;font-size:1rem;padding:8px 10px;border:2.5px solid var(--ink);background:var(--sheet);color:var(--ink);border-radius:0}
+.pbslots{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+
+/* keep grid children from growing past the screen when they hold wide scrollers */
+.stack>*,.stack2>*,.combo-grid>*,.guide>*,.shape-grid>*{min-width:0}
