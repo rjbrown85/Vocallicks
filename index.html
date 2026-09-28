@@ -115,17 +115,17 @@
     <div class="chead">
       <h2><span class="cn">01</span><span class="ct">Riffs</span></h2>
     </div>
-    <div class="subnav">
-      <button type="button" data-go="riffs">The five riffs</button><button type="button" data-go="walk">Key walk</button><button type="button" data-go="shapes">Move the shape</button><button type="button" data-go="combos">Combos</button><button type="button" data-go="bench">Workbench</button><button type="button" data-go="licks">Licks</button><button type="button" data-go="runs">Scale runs</button><button type="button" data-go="log">Log</button>
+    <div class="subnav tabs2" id="riffTabs" role="tablist">
+      <button type="button" data-tab="riffs">The five riffs</button><button type="button" data-tab="walk">Key walk</button><button type="button" data-tab="shapes">Move the shape</button><button type="button" data-tab="combos">Combos</button><button type="button" data-tab="bench">Workbench</button><button type="button" data-tab="licks">Licks</button><button type="button" data-tab="runs">Scale runs</button><button type="button" data-tab="log">Log</button>
     </div>
-  <section id="riffs">
+  <section id="riffs" data-tab="riffs">
     <div class="sec-head">
       <h2 class="tag">The five riffs <button type="button" class="q" data-guide="g-riffs" aria-label="About the five riffs in the Guide">?</button></h2>
     </div>
     <div class="stack cardgrid" id="riffList"></div>
   </section>
 
-  <section id="walk">
+  <section id="walk" data-tab="walk">
     <div class="sec-head">
       <h2 class="tag">Key walk <button type="button" class="q" data-guide="g-walk" aria-label="About the key walk in the Guide">?</button></h2>
     </div>
@@ -148,7 +148,7 @@
     </div>
   </section>
 
-  <section id="shapes">
+  <section id="shapes" data-tab="shapes">
     <div class="sec-head">
       <h2 class="tag">Move the shape <button type="button" class="q" data-guide="g-shapes" aria-label="About moving the shape in the Guide">?</button></h2>
     </div>
@@ -157,7 +157,7 @@
     <div class="row"><button class="btn pri" id="shapeAll" type="button">Echo every position</button></div>
   </section>
 
-  <section id="combos">
+  <section id="combos" data-tab="combos">
     <div class="sec-head">
       <h2 class="tag">Combos <button type="button" class="q" data-guide="g-combos" aria-label="About the combos in the Guide">?</button></h2>
     </div>
@@ -178,7 +178,7 @@
     </div>
   </section>
 
-  <section id="vocab">
+  <section id="benchSec" data-tab="bench">
     <div class="panel taped" id="bench">
       <div class="sec-head"><h2 class="tag">Workbench <button type="button" class="q" data-guide="g-methods" aria-label="About the practice methods in the Guide">?</button></h2></div>
       <div class="cgrid">
@@ -189,13 +189,19 @@
       <p id="vMethodNote" class="hint"></p>
       <div class="playrow"><button class="btn pri bigplay" type="button" id="vGo">Start</button></div>
     </div>
-    <div class="sec-head" id="licks"><h2 class="tag">Licks <button type="button" class="q" data-guide="g-vocab" aria-label="About the licks in the Guide">?</button></h2></div>
+  </section>
+
+  <section id="licks" data-tab="licks">
+    <div class="sec-head"><h2 class="tag">Licks <button type="button" class="q" data-guide="g-vocab" aria-label="About the licks in the Guide">?</button></h2></div>
     <div class="stack cardgrid" id="vList"></div>
-    <div class="sec-head" id="runs"><h2 class="tag">Scale runs <button type="button" class="q" data-guide="g-runs2" aria-label="About the scale runs in the Guide">?</button></h2></div>
+  </section>
+
+  <section id="runs" data-tab="runs">
+    <div class="sec-head"><h2 class="tag">Scale runs <button type="button" class="q" data-guide="g-runs2" aria-label="About the scale runs in the Guide">?</button></h2></div>
     <div class="stack cardgrid" id="vRuns"></div>
   </section>
 
-  <section id="log">
+  <section id="log" data-tab="log">
     <div class="panel taped">
       <div class="sec-head"><h2 class="tag">Log</h2></div>
       <ol class="log-list" id="logList"></ol>
@@ -212,9 +218,9 @@
       <h2><span class="cn">02</span><span class="ct">Changes</span></h2>
     </div>
 
-    <div class="panel taped cpanel">
+    <div class="cpanel">
       <p class="cline" id="cSummary" role="button" tabindex="0" title="Change these in Setup"></p>
-      <div class="playrow"><button class="btn pri bigplay" type="button" id="cPlay">Play the loop</button><button class="btn" type="button" id="cToMine">Arrange these myself</button><button class="btn" type="button" id="cOpenSetup">Change progression, key, style…</button><button class="btn" type="button" id="pbNew">Make my own</button><button class="btn" type="button" id="pbEdit" hidden>Edit this one</button></div>
+      <div class="row ctools"><button class="btn" type="button" id="cToMine">Arrange these myself</button><button class="btn" type="button" id="pbNew">Make my own progression</button><button class="btn" type="button" id="pbEdit" hidden>Edit this one</button></div>
       <div class="pbuilder" id="pbPanel" hidden>
         <div class="cgrid">
           <label for="pbName">Name<input id="pbName" type="text" maxlength="40" placeholder="My progression"></label>
@@ -247,12 +253,16 @@
     <div class="sec-head lanehead" id="laneHead"><h2 class="tag">Riff lane <button type="button" class="q" data-guide="g-arrange" aria-label="How the riff lane and arranger work in the Guide">?</button></h2><p class="hint" id="cRiffNote"></p></div>
     <div class="arranger" id="arranger" hidden>
       <div class="apal" id="aPalette" aria-label="Riffs to place"></div>
+      <label class="apick" for="aPick"><span>Riff to place</span><select id="aPick"></select></label>
       <div class="row arow">
-        <button class="btn" type="button" id="aSuggest">Suggest a chain</button>
+        <button class="btn pri" type="button" id="aFill" disabled>Fill every chord</button>
+        <button class="btn" type="button" id="aSuggest">Fill with a mix</button>
+        <button class="btn" type="button" id="aUndo" disabled>Undo</button>
         <button class="btn" type="button" id="aFromAuto">Copy the auto riffs</button>
         <button class="btn" type="button" id="aClear">Clear</button>
         <span class="klegend alegend"><span><i class="dot gold"></i>lands on the change</span><span><i class="dot green"></i>fits</span></span>
       </div>
+      <p class="hint ahint" id="aHint">Pick a riff, then tap the lit spots. It stays picked, so keep tapping to add more.</p>
     </div>
     <div class="lane-wrap"><div class="lane" id="cLane"></div></div>
     <div class="arranger below" id="aBelow" hidden>
@@ -275,13 +285,17 @@
       </div>
     </div>
 
+    <div class="cmapgrid">
+    <div>
     <div class="sec-head"><h2 class="tag">Chord cards <button type="button" class="q" data-guide="g-cards" aria-label="How to read a chord card in the Guide">?</button></h2></div>
     <div class="cards" id="cCards"></div>
+    </div>
 
     <div class="panel">
       <h3 id="cMapTitle" style="margin-bottom:10px"></h3>
       <div class="klegend"><span><i style="background:#BFD3F5"></i>riff scale</span><span><i style="box-shadow:inset 0 0 0 3px var(--pink)"></i>land</span><span><i style="background:#fff;text-align:center;line-height:10px;color:#B0123F">×</i>don't hold</span><span><i style="background:#FFC7DA"></i>clash</span></div>
       <div class="kbd-wrap"><div class="kbd" id="cMap"></div></div>
+    </div>
     </div>
   </section>
 
@@ -334,11 +348,24 @@
     <div class="chead">
       <h2><span class="cn">04</span><span class="ct">Guide</span></h2>
     </div>
-    <nav class="subnav" id="guideToc" aria-label="Guide sections"></nav>
+    <nav class="subnav tabs2" id="guideToc" aria-label="Guide sections" role="tablist"></nav>
     <div class="guide" id="guideBody"></div>
   </section>
   </main>
 
+</div>
+
+<div class="dock" id="dock" hidden>
+  <div class="dock-in">
+    <button class="btn pri dplay" type="button" id="dPlay" aria-label="Play the loop">▶ Play</button>
+    <label class="dfield dwide" for="dProg"><span>Progression</span><select id="dProg"></select></label>
+    <label class="dfield" for="dKey"><span>Key</span><select id="dKey"></select></label>
+    <label class="dfield dopt" for="dStyle"><span>Style</span><select id="dStyle"></select></label>
+    <label class="dfield" for="dMode"><span>Mode</span><select id="dMode"></select></label>
+    <div class="dfield dtempo"><span>Tempo</span><div class="dstep"><button type="button" class="btn" id="dSlower" aria-label="Slower">−</button><b id="dTempo">70</b><button type="button" class="btn" id="dFaster" aria-label="Faster">+</button></div></div>
+    <label class="dfield dopt" for="dRiffs"><span>Riffs</span><select id="dRiffs"></select></label>
+    <button class="btn dsetup" type="button" id="dSetup">Setup</button>
+  </div>
 </div>
 
 <div class="bar" id="bar" hidden>
