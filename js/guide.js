@@ -38,8 +38,9 @@
         <dl class="gl">${D.COMBOS.map(c => `<div><dt>${c.n ? "Combo " + c.n : "Honorable mention"}: ${esc(c.b.map(x => D.BLOCKS[x].name).join(" + "))}</dt><dd>${esc(c.note)}</dd></div>`).join("")}</dl>` },
 
       { id: "g-progs", title: "The progressions", body: `
-        <p>Twenty loops in two groups. The Aeolian vamp and the Axis are the easiest places to start, because one pentatonic covers every chord. The session routine walks through them from easiest to hardest.</p>
-        ${[...new Set(D.PROGRESSIONS.map(p => p.group))].map(g => `<h4>${esc(g)}</h4><dl class="gl">${D.PROGRESSIONS.filter(p => p.group === g).map(p =>
+        <p>${D.PROGRESSIONS.filter(p => !p.custom).length} loops in two groups. The Aeolian vamp and the Axis are the easiest places to start, because one pentatonic covers every chord. The session routine walks through them from easiest to hardest.</p>
+        <p><b>Make my own</b> builds a loop of two to eight chords. Pick a feel first (major, minor, Dorian, Mixolydian, or blues), then a chord for each slot: the first group holds the chords that belong to that feel, and the second holds common borrowed chords like ♭VII, iv, or a major V in minor. Each chord gets one bar (two with “2 bars per chord”), and you can hold the last chord twice as long. Your progressions appear under “My progressions,” work with every style, the arranger, and the recorder, and stay in this browser.</p>
+        ${[...new Set(D.PROGRESSIONS.filter(p => !p.custom).map(p => p.group))].map(g => `<h4>${esc(g)}</h4><dl class="gl">${D.PROGRESSIONS.filter(p => p.group === g && !p.custom).map(p =>
           `<div><dt>${esc(p.name)} <span>${esc(numerals(p))}</span></dt><dd>${esc(p.note)} ${link(p.src.u, p.src.t)}</dd></div>`).join("")}</dl>`).join("")}` },
 
       { id: "g-scales", title: "How the scale choice works", body: `
@@ -66,7 +67,12 @@
 
       { id: "g-vocab", title: "The licks", body: `
         <p>These are common patterns beyond the five blocks, not from Crystal Cherelle's video. The ones marked “works in Changes” can be placed over a progression.</p>
-        <dl class="gl">${D.VOCAB.map(v => `<div style="--c:${v.c}"><dt><i></i>${esc(v.name)}</dt><dd>${esc(v.desc)}</dd></div>`).join("")}</dl>` },
+        <dl class="gl">${D.VOCAB.filter(v => v.cat !== "run").map(v => `<div style="--c:${v.c}"><dt><i></i>${esc(v.name)}</dt><dd>${esc(v.desc)}</dd></div>`).join("")}</dl>` },
+
+      { id: "g-runs2", title: "Scale runs", body: `
+        <p>Runs build the evenness and pitch accuracy that fast riffs depend on. They play in your riff key from Setup, mostly in steady eighth notes, so start slow and keep every note the same size and volume before you speed up. The five-note runs use the full natural minor or major scale rather than the pentatonic, so they include the half steps that pentatonic riffs skip.</p>
+        <p>The runs marked “works in Changes” can go over a progression. There the five-note run uses the scale that fits each chord, either the key's scale (one scale for the key) or the chord's own mode (chord by chord), and it still has to end on a chord tone. Longer runs span more than one chord, so they find fewer lock spots on fast-changing loops.</p>
+        <dl class="gl">${D.VOCAB.filter(v => v.cat === "run").map(v => `<div style="--c:${v.c}"><dt><i></i>${esc(v.name)}</dt><dd>${esc(v.desc)}</dd></div>`).join("")}</dl>` },
 
       { id: "g-methods", title: "Practice methods", body: `
         <p>The workbench runs any riff, hers or new, in your riff key from Setup. After each method, Next moves to the one that usually comes after it.</p>

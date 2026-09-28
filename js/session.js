@@ -2,8 +2,9 @@
 (function () {
   const VL = window.VL, st = VL.st, $ = VL.$, T = VL.theory, D = VL.data;
 
-  const EASY_TO_HARD = ["aeolian", "axis", "otheraxis", "doowop", "mixo", "popnew", "i454", "ib7", "royal", "twofive", "backdoor", "minor4", "epic", "i5b74", "b6b7", "extplagal", "creep", "jttou", "andalusian", "blues12"];
-  const VOCAB_ORDER = ["climb", "turn", "cas3", "trip3", "encl", "cas4", "gospel", "blue", "arpm7", "arpmaj7"];
+  const EASY_TO_HARD = ["aeolian", "axis", "otheraxis", "runhill", "doowop", "purple", "mixo", "fourfive", "popnew", "i454", "bluesrock", "ib7", "coldplay", "onetwo", "fourthree", "royal", "wonderwall", "twofive", "circle", "eightdays", "backdoor", "minor4", "epic", "i5b74", "b6b7", "extplagal", "wheremind", "hmaxis", "creep", "electric", "jttou", "andalusian", "pachelbel", "blues12"];
+  const VOCAB_ORDER = ["climb", "turn", "flip", "cas3", "seq3", "trip3", "encl", "cas4", "gospel", "blue", "bluesturn", "arpm7", "arpmaj7"];
+  const WARM = ["climb", "pentud", "fivemin", "fivemaj", "pentfall"];
   const dayIndex = () => Math.floor((Date.now() - new Date(2026, 0, 1).getTime()) / 864e5);
   const progName = id => (D.PROGRESSIONS.find(p => p.id === id) || {}).name || id;
 
@@ -20,8 +21,9 @@
     const prog = EASY_TO_HARD[((d % EASY_TO_HARD.length) + EASY_TO_HARD.length) % EASY_TO_HARD.length];
     const voc = VOCAB_ORDER[((d % VOCAB_ORDER.length) + VOCAB_ORDER.length) % VOCAB_ORDER.length];
     const shape = ["qd", "sl", "sw", "qdt"][((d % 4) + 4) % 4];
+    const warm = WARM[((d % WARM.length) + WARM.length) % WARM.length];
     const steps = [
-      { id: "warm", mins: 2, title: "Warm up light", text: "Pentatonic climb on “doo,” quiet.", go: () => VL.vocab.run("v:climb", "doo") },
+      { id: "warm", mins: 2, title: `Warm up: ${VL.vocab.itemName("v:" + warm)}`, text: "On “doo,” quiet and light.", go: () => VL.vocab.run("v:" + warm, "doo") },
       { id: "block", mins: 3, title: `${D.BLOCKS[riff].name}: ${STEP_NAMES[step]}`, text: `Ladder step ${step} of 5.`, go: () => { VL.go("blocks"); setTimeout(() => { document.getElementById("riff-" + riff).scrollIntoView({ block: "start" }); VL.blocks.runLadder(riff, step); }, 60); } },
       { id: "changes", mins: 4, title: `${progName(prog)}: one scale, sing along`, text: "Follow the piano's riffs.", go: () => VL.changes.runPreset({ cProg: prog, cApproach: "key", cMode: "along", cPlace: "phrase", cLoops: 4 }) }
     ];

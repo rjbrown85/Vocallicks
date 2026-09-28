@@ -6,8 +6,10 @@
   /* ---------- riffs available over changes ---------- */
   function riffOptions() {
     const blocks = D.ORDER.map(k => ({ id: k, name: D.BLOCKS[k].name, kind: "pent", steps: D.SETS.minor.blocks[k].n, beats: D.SETS.minor.blocks[k].b, vel: D.SETS.minor.blocks[k].v, c: D.BLOCKS[k].c, on: D.BLOCKS[k].on }));
-    const vocab = D.VOCAB.filter(v => v.land).map(v => ({ id: v.id, name: v.name, kind: v.kind, steps: v.steps, beats: v.beats, vel: null, c: v.c, on: "var(--ink)" }));
-    return { blocks, vocab, all: blocks.concat(vocab) };
+    const mk = v => ({ id: v.id, name: v.changesName || v.name, kind: v.kind, steps: v.steps, beats: v.beats, vel: null, c: v.c, on: "var(--ink)" });
+    const vocab = D.VOCAB.filter(v => v.land && v.cat !== "run").map(mk);
+    const runs = D.VOCAB.filter(v => v.land && v.cat === "run").map(mk);
+    return { blocks, vocab, runs, all: blocks.concat(vocab, runs) };
   }
   const RIFFS = riffOptions();
   const riffById = id => RIFFS.all.find(r => r.id === id) || RIFFS.all[0];
@@ -22,6 +24,18 @@
   const persist = () => { try { localStorage.setItem(WORKKEY, JSON.stringify(work)); localStorage.setItem(SAVEKEY, JSON.stringify(saved)); } catch (e) {} };
   const items = () => (work[st.cProg] = work[st.cProg] || []);
   const setItems = arr => { work[st.cProg] = arr; persist(); };
+
+  /* ---------- your own progressions (stored in this browser, merged into the list) ---------- */
+  const CUSTOMKEY = "vl-custom-progs";
+  let customs = [];
+  try { customs = JSON.parse(localStorage.getItem(CUSTOMKEY)) || []; } catch (e) {}
+  customs = customs.filter(c => { try { c.chords.forEach(T.parseNumeral); return c.chords.length >= 2 && T.TONALITY[c.tonality]; } catch (e) { return false; } });
+  function mergeCustoms() {
+    for (let i = D.PROGRESSIONS.length - 1; i >= 0; i--) if (D.PROGRESSIONS[i].custom) D.PROGRESSIONS.splice(i, 1);
+    customs.forEach(c => D.PROGRESSIONS.push(Object.assign({ group: "My progressions", custom: true, note: "Your own progression.", src: null }, c)));
+  }
+  mergeCustoms();
+  const saveCustoms = () => { try { localStorage.setItem(CUSTOMKEY, JSON.stringify(customs)); } catch (e) {} };
 
   /* ---------- compute everything for the current settings ---------- */
   function compute() {
@@ -59,7 +73,7 @@
         const startBeat = cb - (total - lastDur);
         if (startBeat < lastEnd + 0.01 || startBeat < -loopBeats) continue;
         const res = riff.kind === "encl" ? T.enclose(homes[i], nextInfo.targets, lo, hi, center)
-          : T.landRiff(riff.steps, homes[i], nextInfo.targets, lo, hi, center, prevLast);
+          : T.landRiff(riff.steps, riff.kind === "scale" ? { pcs: T.scalePcs(ctx, i) } : homes[i], nextInfo.targets, lo, hi, center, prevLast);
         if (!res) continue;
         let bt = startBeat;
         const notes = res.notes.map((m, j) => {
@@ -209,6 +223,7 @@
     const scaleTxt = st.cApproach === "key" ? `one scale: ${homeName(C.keyHome, fl)}` : `chord by chord, ${T.FLAVORS[st.cFlavor].toLowerCase()}`;
     $("#cSummary").innerHTML = `<b>${C.prog.chords.map(x => T.parseNumeral(x).text).join(" – ")}</b> in ${T.spell(st.cKey, fl)} ${T.TONALITY[C.prog.tonality].label} · ${VL.esc(C.style.name)} · ${VL.esc(scaleTxt)}`;
     $("#cFlavorWrap").hidden = st.cApproach === "key";
+    $("#pbEdit").hidden = !C.prog.custom;
     const mine = st.cSource === "mine";
     $("#cRiffWrap").hidden = mine; $("#cPlaceWrap").hidden = mine; $("#arranger").hidden = !mine; $("#aBelow").hidden = !mine; $("#cToMine").hidden = mine;
 
@@ -445,7 +460,8 @@
   /* ---------- arranger panel ---------- */
   function buildArranger() {
     const pal = $("#aPalette"); pal.innerHTML = "";
-    [["Her five blocks", RIFFS.blocks], ["Vocabulary", RIFFS.vocab]].forEach(([g, list]) => {
+    [["Blocks", RIFFS.blocks], ["Licks", RIFFS.vocab], ["Runs", RIFFS.runs]].forEach(([g, list]) => {
+      const lab = document.createElement("span"); lab.className = "plabel"; lab.textContent = g; pal.appendChild(lab);
       list.forEach(r => {
         const b = document.createElement("button"); b.type = "button"; b.className = "chip pchip";
         b.textContent = r.name; b.dataset.rid = r.id; b.style.setProperty("--c", r.c);
@@ -546,15 +562,114 @@
     $("#cMapTitle").textContent = `${T.chordName(ch, C.fl)}: ${homeName(home, C.fl)} over ${T.spell(ch.root, C.fl)} ${info.modeName}`;
   }
 
+  /* ---------- progression builder ---------- */
+  const PALETTE = {
+    major: { key: ["I", "ii", "iii", "IV", "V", "vi", "vii°"], more: ["V7", "II", "III", "VI", "bIII", "bVI", "bVII", "iv", "i"] },
+    minor: { key: ["i", "ii°", "bIII", "iv", "v", "bVI", "bVII"], more: ["V", "V7", "IV", "bII", "I"] },
+    dorian: { key: ["i", "ii", "bIII", "IV", "v", "vi°", "bVII"], more: ["V", "V7", "iv", "bVI"] },
+    mixolydian: { key: ["I", "ii", "iii°", "IV", "v", "vi", "bVII"], more: ["V", "V7", "iv", "bIII", "bVI"] },
+    blues: { key: ["I7", "IV7", "V7"], more: ["I", "IV", "V", "bIII", "bVI", "bVII", "i", "iv", "ii", "vi"] }
+  };
+  const STARTERS = { major: ["I", "vi", "IV", "V"], minor: ["i", "bVI", "bIII", "bVII"], dorian: ["i", "IV", "i", "bVII"], mixolydian: ["I", "bVII", "IV", "I"], blues: ["I7", "IV7", "I7", "V7"] };
+  const FAMSUF = { maj: "", min: "m", dom: "7", dim: "°", hdim: "ø7" };
+  let pb = null;       // {id, name, tonality, chords, hold}
+  const letterName = (num, fl) => T.spell(mod(st.cKey + T.parseNumeral(num).deg), fl) + FAMSUF[T.parseNumeral(num).fam];
+  function openBuilder(prog) {
+    pb = prog ? { id: prog.id, name: prog.name, tonality: prog.tonality, chords: prog.chords.slice(), hold: !!(prog.beats && prog.beats[prog.beats.length - 1] > 4) }
+      : { id: null, name: "", tonality: "major", chords: STARTERS.major.slice(), hold: false };
+    $("#pbName").value = pb.name; $("#pbTon").value = pb.tonality; $("#pbHold").checked = pb.hold;
+    $("#pbRemove").hidden = !pb.id; $("#pbPanel").hidden = false;
+    drawBuilder();
+  }
+  function closeBuilder() { pb = null; $("#pbPanel").hidden = true; }
+  function drawBuilder() {
+    if (!pb) return;
+    const fl = T.keyUsesFlats(st.cKey, pb.tonality), pal = PALETTE[pb.tonality];
+    const slots = $("#pbSlots"); slots.innerHTML = "";
+    pb.chords.forEach((c, i) => {
+      const lab = document.createElement("label"); lab.textContent = `Chord ${i + 1}`;
+      const sel = document.createElement("select"); lab.appendChild(sel);
+      const opt = n => ({ value: n, label: `${T.parseNumeral(n).text}  (${letterName(n, fl)})` });
+      const extra = pal.key.concat(pal.more).includes(c) ? [] : [c];
+      VL.select(sel, [{ group: "In the key", items: pal.key.map(opt) }, { group: "Borrowed & other", items: pal.more.concat(extra).map(opt) }], c);
+      sel.onchange = () => { pb.chords[i] = sel.value; drawPreview(); };
+      slots.appendChild(lab);
+    });
+    $("#pbAdd").disabled = pb.chords.length >= 8; $("#pbDel").disabled = pb.chords.length <= 2;
+    drawPreview();
+  }
+  function drawPreview() {
+    const fl = T.keyUsesFlats(st.cKey, pb.tonality);
+    $("#pbPreview").innerHTML = `<b>${pb.chords.map(c => T.parseNumeral(c).text).join(" – ")}</b> · ${VL.esc(pb.chords.map(c => letterName(c, fl)).join(" – "))} in ${T.spell(st.cKey, fl)} ${T.TONALITY[pb.tonality].label}${pb.hold ? " · last chord 2 bars" : ""}`;
+  }
+  function hearBuilder() {
+    if (!pb) return;
+    if (VL.audio.isRunning()) VL.audio.stop(true);
+    const style = T.STYLES[st.cStyle], b = 60 / st.tempo, tl = VL.audio.timeline();
+    const chords = pb.chords.map(n => T.realize(T.parseNumeral(n), st.cKey, pb.tonality, st.cStyle));
+    const fl = T.keyUsesFlats(st.cKey, pb.tonality);
+    let t = 0, prev = null;
+    chords.forEach((ch, i) => {
+      const len = (pb.hold && i === chords.length - 1 ? 8 : 4) * b;
+      const v = prev = voice(voiceTones(ch, style), prev);
+      tl.note(t, bassOf(ch.root), len * .95, .5); tl.notes(t, v, len * .95, .42, .02);
+      tl.ui(t, () => VL.bar.status("Your progression", `${T.parseNumeral(pb.chords[i]).text} · ${T.chordName(ch, fl)}`));
+      t += len;
+    });
+    tl.end = t;
+    VL.audio.run({ tl, title: "Your progression", noRate: true });
+  }
+  let rmArmed = false;
+  function bindBuilder() {
+    $("#pbNew").onclick = () => openBuilder(null);
+    $("#pbEdit").onclick = () => openBuilder(D.PROGRESSIONS.find(p => p.id === st.cProg));
+    $("#pbClose").onclick = closeBuilder;
+    $("#pbName").oninput = e => { pb.name = e.target.value; };
+    $("#pbTon").onchange = e => {
+      const ton = e.target.value;
+      pb.chords = pb.chords.map((c, i) => STARTERS[ton][i % 4]);
+      pb.tonality = ton; drawBuilder();
+    };
+    $("#pbHold").onchange = e => { pb.hold = e.target.checked; drawPreview(); };
+    $("#pbAdd").onclick = () => { if (pb.chords.length < 8) { pb.chords.push(PALETTE[pb.tonality].key[0]); drawBuilder(); } };
+    $("#pbDel").onclick = () => { if (pb.chords.length > 2) { pb.chords.pop(); drawBuilder(); } };
+    $("#pbHear").onclick = hearBuilder;
+    $("#pbSave").onclick = () => {
+      const id = pb.id || "my-" + Date.now();
+      const name = pb.name.trim() || `My ${pb.chords.map(c => T.parseNumeral(c).text).join("–")}`;
+      const rec = { id, name, chords: pb.chords.slice(), tonality: pb.tonality };
+      if (pb.hold) rec.beats = pb.chords.map((c, i) => i === pb.chords.length - 1 ? 8 : 4);
+      const i = customs.findIndex(c => c.id === id);
+      if (i >= 0) customs[i] = rec; else customs.push(rec);
+      if (pb.id) delete work[id];
+      saveCustoms(); persist(); mergeCustoms(); buildProgSelect();
+      closeBuilder();
+      if (VL.audio.isRunning()) VL.audio.stop(true);
+      st.cProg = id; current = 0; selItem = null; VL.changed();
+    };
+    $("#pbRemove").onclick = e => {
+      const b = e.currentTarget;
+      if (!rmArmed) { rmArmed = true; b.textContent = "Tap again to delete"; setTimeout(() => { rmArmed = false; b.textContent = "Delete"; }, 3000); return; }
+      rmArmed = false; b.textContent = "Delete";
+      customs = customs.filter(c => c.id !== pb.id); delete work[pb.id];
+      saveCustoms(); persist(); mergeCustoms(); buildProgSelect();
+      if (st.cProg === pb.id) st.cProg = "axis";
+      closeBuilder(); current = 0; selItem = null; VL.changed();
+    };
+  }
+  function buildProgSelect() {
+    const groups = [...new Set(D.PROGRESSIONS.map(p => p.group))];
+    VL.select($("#cProg"), groups.map(g => ({ group: g, items: D.PROGRESSIONS.filter(p => p.group === g).map(p => ({ value: p.id, label: `${p.name} (${p.chords.map(x => T.parseNumeral(x).text).join("–")})` })) })), st.cProg);
+  }
+
   /* ---------- controls ---------- */
   const CONTROLS = [["#cProg", "cProg"], ["#cKey", "cKey", 1], ["#cStyle", "cStyle"], ["#cBars", "cBars", 1], ["#cLoops", "cLoops", 1], ["#cMode", "cMode"], ["#cApproach", "cApproach"], ["#cFlavor", "cFlavor"], ["#cRiff", "cRiff"], ["#cPlace", "cPlace"], ["#cSource", "cSource"]];
   function syncControls() { CONTROLS.forEach(([id, key]) => { $(id).value = st[key]; }); }
   function buildControls() {
-    const groups = [...new Set(D.PROGRESSIONS.map(p => p.group))];
-    VL.select($("#cProg"), groups.map(g => ({ group: g, items: D.PROGRESSIONS.filter(p => p.group === g).map(p => ({ value: p.id, label: `${p.name} (${p.chords.map(x => T.parseNumeral(x).text).join("–")})` })) })), st.cProg);
+    buildProgSelect();
     VL.select($("#cKey"), T.KEYNAMES.map((k, i) => ({ value: i, label: k })), st.cKey);
     VL.select($("#cStyle"), Object.entries(T.STYLES).map(([id, s]) => ({ value: id, label: s.name })), st.cStyle);
-    VL.select($("#cRiff"), [{ group: "Her five blocks", items: RIFFS.blocks.map(r => ({ value: r.id, label: r.name })) }, { group: "Vocabulary", items: RIFFS.vocab.map(r => ({ value: r.id, label: r.name })) }], st.cRiff);
+    VL.select($("#cRiff"), [{ group: "Her five blocks", items: RIFFS.blocks.map(r => ({ value: r.id, label: r.name })) }, { group: "Vocabulary", items: RIFFS.vocab.map(r => ({ value: r.id, label: r.name })) }, { group: "Scale runs", items: RIFFS.runs.map(r => ({ value: r.id, label: r.name })) }], st.cRiff);
     CONTROLS.forEach(([id, key, num]) => {
       const el = $(id); el.value = st[key];
       el.addEventListener("change", e => { st[key] = num ? +e.target.value : e.target.value; if (key === "cProg") { current = 0; selItem = null; } if (VL.audio.isRunning()) VL.audio.stop(true); VL.changed(); });
@@ -564,8 +679,8 @@
 
   VL.changes = {
     init() {
-      buildControls(); buildArranger(); draw();
-      VL.onSettings(() => { syncControls(); draw(); });
+      buildControls(); buildArranger(); bindBuilder(); draw();
+      VL.onSettings(() => { syncControls(); draw(); if (pb) drawBuilder(); });
       VL.whenShown("changes", draw);
       let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (lastC) drawLane(lastC); }, 200); });
     },

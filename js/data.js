@@ -98,7 +98,50 @@
       note: "Stepping down to a major V. The V is where the minor pentatonic stops working." },
     { id: "blues12", group: "Rock & blues", name: "12-bar blues", chords: ["I7", "I7", "I7", "I7", "IV7", "IV7", "I7", "I7", "V7", "IV7", "I7", "V7"], tonality: "blues",
       src: { t: "6 common chord progressions and why they work", u: "https://www.youtube.com/watch?v=v3YbEL-_eoI" },
-      note: "The blues form. Minor pentatonic over dominant chords, blue notes on purpose." }
+      note: "The blues form. Minor pentatonic over dominant chords, blue notes on purpose." },
+    /* ---- v4: more from David Bennett's chord progression videos ---- */
+    { id: "purple", group: "Pop & R&B", name: "Purple Rain", chords: ["I", "vi", "V", "IV"], tonality: "major",
+      src: { t: "Songs that use the Purple Rain chord progression", u: "https://www.youtube.com/watch?v=YEZzB2PpIQ8" },
+      note: "Prince's loop: the Axis chords with the middle two swapped. One pentatonic covers it." },
+    { id: "fourfive", group: "Pop & R&B", name: "4–5–6–1", chords: ["IV", "V", "vi", "I"], tonality: "major",
+      src: { t: "Songs that use the 4-5-6-1 chord progression", u: "https://www.youtube.com/watch?v=2BS0saH0SYk" },
+      note: "A climb that lands on vi before settling home. Same four chords as the Axis." },
+    { id: "fourthree", group: "Pop & R&B", name: "4–3–2–1", chords: ["IV", "iii", "ii", "I"], tonality: "major",
+      src: { t: "Songs that use the 4-3-2-1 Chord Progression", u: "https://www.youtube.com/watch?v=Vaavaj9DOGY" },
+      note: "Stepping down the scale from IV to home, so each landing note sits a step lower." },
+    { id: "onetwo", group: "Pop & R&B", name: "1–2–3–4", chords: ["I", "ii", "iii", "IV"], tonality: "major",
+      src: { t: "Songs that use the 1-2-3-4 chord progression", u: "https://www.youtube.com/watch?v=eC4SEVRT9wE" },
+      note: "Straight up the scale, and the landing notes climb with it." },
+    { id: "coldplay", group: "Pop & R&B", name: "Coldplay's IV–I–V", chords: ["IV", "I", "V"], tonality: "major",
+      src: { t: "Coldplay's go-to chord progression", u: "https://www.youtube.com/watch?v=Qd_qpdrl2i4" },
+      note: "Three major chords and no minor chord, so it stays bright. A three-bar loop feels slightly off-balance." },
+    { id: "circle", group: "Pop & R&B", name: "Circle of fifths", chords: ["vi", "ii", "V", "I"], tonality: "major",
+      src: { t: "Songs that use the Circle of Fifths progression", u: "https://www.youtube.com/watch?v=-DQJmicTFGQ" },
+      note: "Each root falls a 5th to the next. Jazz or Gospel style brings out the 2-5-1 at the end." },
+    { id: "hmaxis", group: "Pop & R&B", name: "Harmonic minor Axis", chords: ["i", "bVI", "bIII", "V"], tonality: "minor",
+      src: { t: "Songs that use the Harmonic Minor Axis progression", u: "https://www.youtube.com/watch?v=LjOKMNNo7HA" },
+      note: "The minor Axis with a major V at the end. That V is where the key's pentatonic clashes." },
+    { id: "pachelbel", group: "Pop & R&B", name: "Pachelbel's Canon", chords: ["I", "V", "vi", "iii", "IV", "I", "IV", "V"], beats: [2, 2, 2, 2, 2, 2, 2, 2], tonality: "major",
+      src: { t: "21 Songs that use Pachelbel's Canon chord progression", u: "https://www.youtube.com/watch?v=_PC6jwoHyOk" },
+      note: "Eight chords, two per bar. Use short riffs, or switch to 2 bars per chord." },
+    { id: "wonderwall", group: "Rock & blues", name: "Wonderwall", chords: ["i", "bIII", "bVII", "IV"], tonality: "dorian",
+      src: { t: "Songs that use the Wonderwall chord progression", u: "https://www.youtube.com/watch?v=DfoM4EfHK0k" },
+      note: "The Oasis verse loop, also called the plagal cascade. The major IV is the Dorian note, so land on its 3rd." },
+    { id: "wheremind", group: "Rock & blues", name: "Where Is My Mind", chords: ["I", "vi", "III", "IV"], tonality: "major",
+      src: { t: "Songs that use the \"Where Is My Mind\" progression", u: "https://www.youtube.com/watch?v=ttJlMFsL2ro" },
+      note: "The Pixies loop. The major III raises one note of the scale by a half step." },
+    { id: "electric", group: "Rock & blues", name: "She's Electric", chords: ["I", "III", "vi", "IV"], tonality: "major",
+      src: { t: "Songs that use the “She’s Electric” chord progression", u: "https://www.youtube.com/watch?v=mUYgS4IP_TU" },
+      note: "The III works as a dominant pulling into vi, so it gets its own scale." },
+    { id: "eightdays", group: "Rock & blues", name: "Eight Days a Week", chords: ["I", "II", "IV", "I"], tonality: "major",
+      src: { t: "the \"Eight Days a Week\" chord progression", u: "https://www.youtube.com/watch?v=5ANjO8ypYfQ" },
+      note: "A bright Beatles loop of all major chords. The major II adds a Lydian lift." },
+    { id: "bluesrock", group: "Rock & blues", name: "Blues rock I–♭III–IV", chords: ["I", "bIII", "IV"], beats: [4, 4, 8], tonality: "blues",
+      src: { t: "Songs that use the Blues Rock Chord Progression", u: "https://www.youtube.com/watch?v=kVxA0EouxkQ" },
+      note: "Major I, a borrowed ♭III, then IV. The minor pentatonic rides right over it." },
+    { id: "runhill", group: "Rock & blues", name: "Running Up That Hill", chords: ["bVI", "bVII", "i"], beats: [4, 4, 8], tonality: "minor",
+      src: { t: "Songs that use the Running Up That Hill chord progression", u: "https://www.youtube.com/watch?v=6TUUe-FrPOI" },
+      note: "Kate Bush's climb into minor. Every chord fits the minor pentatonic." }
   ];
 
   /* ---- Vocabulary: patterns beyond the five blocks (general, not from the video) ---- */
@@ -123,7 +166,25 @@
     { id: "arpm7", name: "Minor 7 arpeggio run", kind: "semi", ctx: "minor", semis: [0, 3, 7, 10, 12, 10, 7, 3, 0], beats: [q, q, q, q, q, q, q, q, 1], c: "var(--orange)",
       desc: "Up and down the chord tones of a minor 7. It trains your ear to hear where the chord lives." },
     { id: "arpmaj7", name: "Major 7 arpeggio run", kind: "semi", ctx: "major", semis: [0, 4, 7, 11, 12, 11, 7, 4, 0], beats: [q, q, q, q, q, q, q, q, 1], c: "var(--yellow)",
-      desc: "The same idea over a major 7. The 7th a half step under the octave is the neo-soul color." }
+      desc: "The same idea over a major 7. The 7th a half step under the octave is the neo-soul color." },
+    /* v4 licks */
+    { id: "flip", name: "Neighbor flip", kind: "pent", steps: [1, 0, 1, 0, -1, 0], beats: [q, q, q, q, q, 1.25], land: true, c: "var(--pink)",
+      desc: "Flip between two neighboring notes, dip one step, and come back to land. It's the quick shimmer singers put on a held word." },
+    { id: "seq3", name: "Rising 3s", kind: "pent", steps: [-2, -1, 0, -1, 0, 1, 0, 1, 2], beats: [q, q, q, q, q, q, q, q, 1], land: true, c: "var(--blue)",
+      desc: "The cascade turned upward: three-note groups climbing the pentatonic, each one starting a step higher." },
+    { id: "bluesturn", name: "Blue-note turn", kind: "semi", ctx: "minor", semis: [7, 6, 5, 3, 0], beats: [q, q, q, q, 1], c: "var(--orange)",
+      desc: "Slide down from the 5th through the ♭5 blue note to the root. The ♭5 passes quickly, so it adds grit without sounding wrong." },
+    /* v4 scale runs */
+    { id: "pentud", cat: "run", name: "Pentatonic up and down", kind: "pent", steps: [0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0], beats: [.5, .5, .5, .5, .5, .5, .5, .5, .5, .5, 1], land: true, c: "var(--green)",
+      desc: "Up the minor pentatonic to the octave and back down, one note per half beat. Keep every note the same size." },
+    { id: "pentfall", cat: "run", name: "Pentatonic fall", kind: "pent", steps: [5, 4, 3, 2, 1, 0], beats: [q, q, q, q, q, 1], land: true, c: "var(--yellow)",
+      desc: "A quick run down the pentatonic from the octave into a held landing note, the mirror of the climb." },
+    { id: "fivemin", cat: "run", name: "Five-note minor run", changesName: "Five-note scale run", kind: "scale", ctx: "minor", steps: [0, 1, 2, 3, 4, 3, 2, 1, 0], beats: [.5, .5, .5, .5, .5, .5, .5, .5, 1], land: true, c: "var(--pink)",
+      desc: "1 2 ♭3 4 5 4 ♭3 2 1 of the natural minor scale. Over a progression it runs on each chord's own scale instead." },
+    { id: "fivemaj", cat: "run", name: "Five-note major run", kind: "scale", ctx: "major", steps: [0, 1, 2, 3, 4, 3, 2, 1, 0], beats: [.5, .5, .5, .5, .5, .5, .5, .5, 1], c: "var(--orange)",
+      desc: "1 2 3 4 5 4 3 2 1 of the major scale, on the relative major of your riff key so it shares the same notes." },
+    { id: "octmin", cat: "run", name: "Natural minor octave", kind: "scale", ctx: "minor", steps: [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 0], beats: [.5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5, 1], c: "var(--blue)",
+      desc: "The full natural minor scale up an octave and back. Save it for when the five-note run feels easy." }
   ];
 
   D.METHODS = [

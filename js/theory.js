@@ -45,6 +45,7 @@
     major: { base: "ionian", fit: [0, 2, 3, 4, 5, 7, 8, 9, 10, 11], label: "major" },
     minor: { base: "aeolian", fit: [0, 2, 3, 5, 7, 8, 10, 11], label: "minor" },
     mixolydian: { base: "mixolydian", fit: [0, 2, 4, 5, 7, 9, 10, 11], label: "Mixolydian" },
+    dorian: { base: "dorian", fit: [0, 2, 3, 5, 7, 9, 10, 11], label: "Dorian" },
     blues: { base: "mixolydian", fit: null, label: "blues" }
   };
 
@@ -105,8 +106,8 @@
   T.spell = function (pc, useFlats) { return (useFlats ? T.FLAT : T.SHARP)[mod(pc)]; };
   /* flats for keys that are conventionally written with flats */
   T.keyUsesFlats = function (keyPc, tonality) {
-    const majTonic = tonality === "minor" ? mod(keyPc + 3) : tonality === "mixolydian" || tonality === "blues" ? mod(keyPc + 5) : keyPc;
-    return [5, 10, 3, 8, 1].includes(majTonic) || (majTonic === 0 && tonality === "minor");
+    const majTonic = tonality === "minor" ? mod(keyPc + 3) : tonality === "dorian" ? mod(keyPc + 10) : tonality === "mixolydian" || tonality === "blues" ? mod(keyPc + 5) : keyPc;
+    return [5, 10, 3, 8, 1].includes(majTonic) || (majTonic === 0 && (tonality === "minor" || tonality === "dorian"));
   };
   T.chordName = (c, fl) => T.spell(c.root, fl) + T.SUFFIX[c.q];
   /* spell a note by its interval from a spelled chord root (so D7's 3rd is F#, not Gb) */
@@ -226,7 +227,7 @@
   /* one pentatonic for the whole progression */
   T.keyHome = function (tonality, keyPc) {
     if (tonality === "major") return pentHome(keyPc + 9, "Key", "Relative minor pentatonic: the same notes as the major pentatonic of the key.");
-    if (tonality === "minor") return pentHome(keyPc, "Key", "Minor pentatonic on the key note.");
+    if (tonality === "minor" || tonality === "dorian") return pentHome(keyPc, "Key", "Minor pentatonic on the key note.");
     if (tonality === "mixolydian") return pentHome(keyPc + 7, "Key", "Minor pentatonic a 5th above the key note fits the Mixolydian sound.");
     return { kind: "pent", minorRoot: keyPc, pcs: T.MINPENT.map(i => mod(keyPc + i)), tag: "Key", blues: true,
       why: "Minor pentatonic on the key note. Over major chords its b3 is the blue note, which is the point in blues and rock." };
@@ -320,8 +321,9 @@
     const starts = []; let acc = 0; beats.forEach(b => { starts.push(acc); acc += b; });
     const infos = chords.map((c, i) => T.chordScale(c, chords[(i + 1) % n], prog.tonality, o.key));
     const keyHome = T.keyHome(prog.tonality, o.key);
+    const keyScale = T.MODES[T.TONALITY[prog.tonality].base].map(i => mod(o.key + i));
     const homes = infos.map(info => o.approach === "key" ? keyHome : T.pickHome(info, o.flavor || "sweet"));
-    return { prog, beats, chords, n, starts, loopBeats: acc, infos, keyHome, homes, approach: o.approach,
+    return { prog, beats, chords, n, starts, loopBeats: acc, infos, keyHome, keyScale, homes, approach: o.approach,
       lo: o.lo, hi: o.hi, center: o.lo + (o.hi - o.lo) * 0.55, blues: prog.tonality === "blues" || !!keyHome.blues };
   };
   /* ---------- arranger: where a riff fits over the loop ----------
@@ -385,7 +387,7 @@
       return out;
     }
     const hci = T.chordIndexAt(ctx, start);
-    const home = ctx.approach === "key" ? ctx.keyHome : ctx.homes[hci];
+    const home = riff.kind === "scale" ? { pcs: T.scalePcs(ctx, hci) } : ctx.approach === "key" ? ctx.keyHome : ctx.homes[hci];
     const lad = T.ladder(home.pcs, ctx.lo - 12, ctx.hi + 12);
     for (let j = 0; j < lad.length; j++) {
       const idx = riff.steps.map(s => j + s);
@@ -394,6 +396,8 @@
     }
     return out;
   };
+  /* scale runs use the full scale: the key's scale, or the mode of the chord they start on */
+  T.scalePcs = (ctx, ci) => ctx.approach === "key" ? ctx.keyScale : ctx.infos[ci].modePcs;
   const spanOf = c => { const L = c.notes[c.notes.length - 1]; return [c.notes[0].beat, L.beat + L.dur]; };
   T.riffSpan = spanOf;
   /* lock spots for a riff given riffs already placed ([{start,end,lastMidi}]) */

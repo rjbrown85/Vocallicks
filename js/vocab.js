@@ -10,12 +10,15 @@
     const { lo, hi, center } = range();
     const key = tonicPc();
     const vel = (j, n) => j === 0 ? .9 : j === n - 1 ? .75 : .8;
-    if (v.kind === "pent") {
-      const pcs = T.MINPENT.map(i => mod(key + i));
+    if (v.kind === "pent" || v.kind === "scale") {
+      // scale runs: natural minor on the riff key, or major on its relative major (same notes)
+      const pcs = v.kind === "pent" ? T.MINPENT.map(i => mod(key + i))
+        : v.ctx === "major" ? T.MODES.ionian.map(i => mod(key + 3 + i)) : T.MODES.aeolian.map(i => mod(key + i));
+      const rootPc = v.kind === "scale" && v.ctx === "major" ? mod(key + 3) : key;
       const lad = T.ladder(pcs, lo - 24, hi + 24);
       let best = null;
       lad.forEach((m, j) => {
-        if (mod(m) !== key) return;
+        if (mod(m) !== rootPc) return;
         const idx = v.steps.map(s => j + s);
         if (idx.some(i => i < 0 || i >= lad.length)) return;
         const ns = idx.map(i => lad[i]);
@@ -110,13 +113,16 @@
 
   /* ---------- drawing ---------- */
   function buildCards() {
-    const list = $("#vList"); list.innerHTML = "";
-    D.VOCAB.forEach((v, i) => {
+    $("#vList").innerHTML = ""; $("#vRuns").innerHTML = "";
+    let nL = 0, nR = 0;
+    D.VOCAB.forEach(v => {
+      const run = v.cat === "run", list = run ? $("#vRuns") : $("#vList");
+      const tag = run ? "R" + (++nR) : String.fromCharCode(65 + nL++);
       const a = document.createElement("article"); a.className = "panel vcard"; a.id = "v-" + v.id; a.style.setProperty("--c", v.c);
       a.innerHTML = `${v.land ? '<span class="sticker">works in Changes</span>' : ""}
-        <div class="riff-head"><span class="num" aria-hidden="true">${String.fromCharCode(65 + i)}</span><h3>${VL.esc(v.name)}</h3></div>
+        <div class="riff-head"><span class="num" aria-hidden="true">${tag}</span><h3>${VL.esc(v.name)}</h3></div>
         <div class="stair-wrap"><div class="stair"></div></div>
-        <div class="row"><button class="btn" type="button" data-m="listen">Listen</button><button class="btn" type="button" data-m="doo">Doo first</button><button class="btn" type="button" data-m="back">Build from the end</button><button class="btn pri" type="button" data-m="bench">Open in workbench</button></div>`;
+        <div class="row"><button class="btn" type="button" data-m="listen">Listen</button><button class="btn" type="button" data-m="doo">Doo first</button>${run ? '<button class="btn" type="button" data-m="speed">Speed up</button>' : '<button class="btn" type="button" data-m="back">Build from the end</button>'}<button class="btn pri" type="button" data-m="bench">Open in workbench</button></div>`;
       a.querySelectorAll("[data-m]").forEach(b => b.onclick = () => {
         const it = itemById("v:" + v.id);
         if (b.dataset.m === "bench") { st.vItem = "v:" + v.id; VL.changed(); $("#bench").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
@@ -131,7 +137,8 @@
   function buildBench() {
     VL.select($("#vItem"), [
       { group: "Her five blocks", items: D.ORDER.map(k => ({ value: "b:" + k, label: D.BLOCKS[k].name })) },
-      { group: "Vocabulary", items: D.VOCAB.map(v => ({ value: "v:" + v.id, label: v.name })) }
+      { group: "Licks", items: D.VOCAB.filter(v => v.cat !== "run").map(v => ({ value: "v:" + v.id, label: v.name })) },
+      { group: "Scale runs", items: D.VOCAB.filter(v => v.cat === "run").map(v => ({ value: "v:" + v.id, label: v.name })) }
     ], st.vItem);
     VL.select($("#vMethod"), D.METHODS.map(m => ({ value: m.id, label: m.name })), st.vMethod);
     [["#vItem", "vItem"], ["#vMethod", "vMethod"]].forEach(([id, key]) => $(id).addEventListener("change", e => { st[key] = e.target.value; VL.changed(); }));
