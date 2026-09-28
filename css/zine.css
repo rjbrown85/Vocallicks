@@ -388,3 +388,49 @@ body.dragging .grab{cursor:grabbing}
 
 /* keep grid children from growing past the screen when they hold wide scrollers */
 .stack>*,.stack2>*,.combo-grid>*,.guide>*,.shape-grid>*{min-width:0}
+
+/* ===== v5: full-width layout, one Setup drawer, merged Riffs chapter ===== */
+.wrap{max-width:none;padding-inline:clamp(16px,3vw,48px)}
+.bar-in{max-width:none}
+body[data-chapter="riffs"]{--paper:#E6E8E3}
+.chapnav button[data-ch="riffs"]{--chap:var(--yellow)}
+.chapnav{flex-wrap:wrap;overflow:visible}
+.chapnav .setupbtn{margin-left:auto}
+@media (max-width:560px){.chapnav{gap:6px}.chapnav button{padding:5px 10px 6px;font-size:.95rem}}
+
+/* card grids use the width instead of stacking everything */
+.cardgrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,540px),1fr));align-items:start}
+.combo-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,480px),1fr));align-items:start}
+.guide{grid-template-columns:repeat(auto-fill,minmax(min(100%,580px),1fr));align-items:start}
+@media (min-width:1100px){.stack2{grid-template-columns:1fr 1fr;align-items:start}#sArrPanel,#recorder{grid-column:auto}}
+#walk .panel{grid-template-columns:minmax(0,1fr)}
+
+/* Setup drawer: three groups side by side on wide screens */
+.sgroups{display:grid;gap:26px 30px;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));align-items:start}
+.sgroup{display:grid;gap:12px;align-content:start;padding-top:4px}
+.sgroup > .part{margin:0;justify-self:start;display:inline-flex;align-items:center;gap:8px;font-weight:400}
+.sgroup .fields{grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));margin-top:0}
+.sgroup .q{vertical-align:0;margin-left:0}
+.ptag{font-family:"Courier Prime","Courier New",monospace;font-weight:700;font-size:.8rem;background:var(--sheet);border:1.5px solid var(--ink);padding:0 6px;transform:rotate(1deg)}
+.fields .full{grid-column:1/-1}
+.setupfoot{margin-top:20px}
+.summary .edit{background:var(--ink);color:var(--sheet)}
+
+/* Changes top panel: summary, play, builder */
+.cpanel .cline{margin-top:0;cursor:pointer;text-decoration:underline dashed rgba(22,22,22,.35);text-underline-offset:5px}
+.cpanel .cline:hover{background:color-mix(in srgb,var(--yellow) 30%,transparent)}
+.cpanel .cline:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.cpanel .playrow{margin-top:14px}
+
+/* selects: never clip silently; the full text is always in the tooltip too */
+select{text-overflow:ellipsis;white-space:nowrap;overflow:hidden;padding-right:30px}
+.sgroups{grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr))}
+.sgroup .fields,.cgrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))}
+.cardgrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,400px),1fr))}
+.cardgrid .ladder{grid-template-columns:repeat(auto-fill,minmax(112px,1fr))}
+.gl{grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:10px 22px}
+#g-progs,#g-riffs,#g-combos{grid-column:1/-1}
+.shape-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}
+.cgrid{grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr))}
+.selnote{font-family:"Courier Prime","Courier New",monospace;font-weight:700;font-size:.92rem;color:var(--soft)}
+@media (max-width:560px){select{font-size:.95rem}}
