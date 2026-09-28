@@ -125,7 +125,7 @@
         <div class="row"><button class="btn" type="button" data-m="listen">Listen</button><button class="btn" type="button" data-m="doo">Doo first</button>${run ? '<button class="btn" type="button" data-m="speed">Speed up</button>' : '<button class="btn" type="button" data-m="back">Build from the end</button>'}<button class="btn pri" type="button" data-m="bench">Open in workbench</button></div>`;
       a.querySelectorAll("[data-m]").forEach(b => b.onclick = () => {
         const it = itemById("v:" + v.id);
-        if (b.dataset.m === "bench") { st.vItem = "v:" + v.id; VL.changed(); $("#bench").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+        if (b.dataset.m === "bench") { st.vItem = "v:" + v.id; VL.changed(); VL.reveal($("#bench"), true); return; }
         VL.audio.runReps(methodPlan(it, b.dataset.m, a.querySelector(".stair")));
       });
       list.appendChild(a);
@@ -154,7 +154,7 @@
 
   VL.vocab = {
     init() { buildCards(); buildBench(); draw(); VL.onSettings(draw); },
-    run(id, method) { VL.go("riffs"); setTimeout(() => $("#bench").scrollIntoView({ block: "start" }), 30); st.vItem = id; st.vMethod = method; VL.changed(); setTimeout(() => VL.audio.runReps(methodPlan(itemById(id), method, $("#vStair"))), 50); },
+    run(id, method) { VL.go("riffs"); setTimeout(() => VL.reveal($("#bench")), 30); st.vItem = id; st.vMethod = method; VL.changed(); setTimeout(() => VL.audio.runReps(methodPlan(itemById(id), method, $("#vStair"))), 50); },
     itemName: id => { try { return itemById(id).name; } catch (e) { return id; } }
   };
 })();

@@ -166,7 +166,36 @@
       note: "Otis Redding, 1968. Two major chords from outside the key (III and II), each raising one note of the scale." },
     { id: "heyjude", group: "'60s classics", name: "Hey Jude outro", chords: ["I", "bVII", "IV", "I"], tonality: "mixolydian",
       src: { t: "Hooktheory: Hey Jude", u: "https://www.hooktheory.com/theorytab/view/the-beatles/hey-jude" },
-      note: "The Beatles, 1968. The “na na na” coda switches to Mixolydian. A great loop for long, free ad-libs." }
+      note: "The Beatles, 1968. The “na na na” coda switches to Mixolydian. A great loop for long, free ad-libs." },
+    /* ---- v6: '50s rock and roll and doo-wop ---- */
+    { id: "quickchange", group: "'50s classics", name: "Quick-change 12-bar", chords: ["I7", "IV7", "I7", "I7", "IV7", "IV7", "I7", "I7", "V7", "IV7", "I7", "V7"], tonality: "blues",
+      src: { t: "Guitar Noise: Standard twelve-bar blues and the quick change", u: "https://www.guitarnoise.com/guide/standard-twelve-bar-blues/" },
+      note: "The rock and roll 12-bar with a jump to IV in bar 2. The early change keeps the first line moving." },
+    { id: "doowopii", group: "'50s classics", name: "Doo-wop with ii", chords: ["I", "vi", "ii", "V"], tonality: "major",
+      src: { t: "Wikipedia: '50s progression (I–vi–ii–V variant)", u: "https://en.wikipedia.org/wiki/%2750s_progression" },
+      note: "The '50s progression with ii in place of IV, so the roots fall by 5ths into V. Smoother and a little jazzier." },
+    { id: "sleepwalk", group: "'50s classics", name: "Sleep Walk", chords: ["I", "vi", "iv", "V"], tonality: "major",
+      src: { t: "Hooktheory: Sleep Walk", u: "https://www.hooktheory.com/theorytab/view/santo-and-johnny/sleep-walk" },
+      note: "Santo & Johnny, 1959. Doo-wop with a borrowed minor iv, which lowers one note for a dreamy, sad turn." },
+    /* ---- v6: '70s classics ---- */
+    { id: "sweethome", group: "'70s classics", name: "Sweet Home Alabama", chords: ["I", "bVII", "IV"], beats: [4, 4, 8], tonality: "mixolydian",
+      src: { t: "Hooktheory: Sweet Home Alabama", u: "https://www.hooktheory.com/theorytab/view/lynyrd-skynyrd/sweet-home-alabama" },
+      note: "Lynyrd Skynyrd, 1974. A Mixolydian three-chord loop, so the minor pentatonic a 5th above the key fits." },
+    { id: "heavensdoor", group: "'70s classics", name: "Knockin' on Heaven's Door", chords: ["I", "V", "ii", "I", "V", "IV"], beats: [4, 4, 8, 4, 4, 8], tonality: "major",
+      src: { t: "Hooktheory: Knockin' On Heaven's Door", u: "https://www.hooktheory.com/theorytab/view/bob-dylan/knockin-on-heavens-door" },
+      note: "Bob Dylan, 1973. Two phrases: one ends on ii, the other on IV. Slow and spacious, good for long held landings." },
+    { id: "hotelcal", group: "'70s classics", name: "Hotel California", chords: ["i", "V", "bVII", "IV", "bVI", "bIII", "iv", "V"], tonality: "minor",
+      src: { t: "Hooktheory: Hotel California", u: "https://www.hooktheory.com/theorytab/view/eagles/hotel-california" },
+      note: "Eagles, 1976. Eight chords with a major V and a major IV, so chord by chord pays off here." },
+    { id: "whatsgoingon", group: "'70s classics", name: "What's Going On", chords: ["Imaj7", "vi"], tonality: "major",
+      src: { t: "Hooktheory: What's Going On", u: "https://www.hooktheory.com/theorytab/view/marvin-gaye/whats-going-on" },
+      note: "Marvin Gaye, 1971. A two-chord soul vamp that sounds best in R&B or Gospel style." },
+    { id: "sunshine", group: "'70s classics", name: "Ain't No Sunshine", chords: ["i", "v", "bVII", "i"], tonality: "minor",
+      src: { t: "Hooktheory: Ain't No Sunshine", u: "https://www.hooktheory.com/theorytab/view/bill-withers/aint-no-sunshine" },
+      note: "Bill Withers, 1971. All minor-key chords, so the minor pentatonic fits every one." },
+    { id: "lovely", group: "'70s classics", name: "Isn't She Lovely", chords: ["vi", "II7", "V", "I"], tonality: "major",
+      src: { t: "Hooktheory: Isn't She Lovely", u: "https://www.hooktheory.com/theorytab/view/stevie-wonder/isnt-she-lovely" },
+      note: "Stevie Wonder, 1976. The II7 is a secondary dominant pulling to V, so it raises one note of the scale." }
   ];
 
   /* ---- Vocabulary: patterns beyond the five blocks (general, not from the video) ---- */

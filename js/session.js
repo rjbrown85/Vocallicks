@@ -2,7 +2,7 @@
 (function () {
   const VL = window.VL, st = VL.st, $ = VL.$, T = VL.theory, D = VL.data;
 
-  const EASY_TO_HARD = ["aeolian", "axis", "grapevine", "otheraxis", "runhill", "doowop", "heyjude", "brown", "louie", "purple", "mixo", "fourfive", "popnew", "i454", "bluesrock", "ib7", "coldplay", "onetwo", "fourthree", "royal", "wonderwall", "twofive", "circle", "eightdays", "backdoor", "minor4", "epic", "i5b74", "b6b7", "extplagal", "wheremind", "twist", "california", "dock", "hmaxis", "risingsun", "creep", "electric", "jttou", "andalusian", "pachelbel", "blues12"];
+  const EASY_TO_HARD = ["aeolian", "axis", "sunshine", "grapevine", "whatsgoingon", "otheraxis", "runhill", "doowop", "heyjude", "brown", "louie", "sweethome", "sleepwalk", "doowopii", "heavensdoor", "purple", "mixo", "fourfive", "popnew", "i454", "bluesrock", "ib7", "coldplay", "onetwo", "fourthree", "royal", "wonderwall", "twofive", "circle", "eightdays", "backdoor", "minor4", "epic", "i5b74", "b6b7", "extplagal", "wheremind", "twist", "california", "dock", "hmaxis", "risingsun", "lovely", "hotelcal", "quickchange", "creep", "electric", "jttou", "andalusian", "pachelbel", "blues12"];
   const VOCAB_ORDER = ["climb", "turn", "flip", "cas3", "seq3", "trip3", "encl", "cas4", "gospel", "blue", "bluesturn", "arpm7", "arpmaj7"];
   const WARM = ["climb", "pentud", "fivemin", "fivemaj", "pentfall"];
   const dayIndex = () => Math.floor((Date.now() - new Date(2026, 0, 1).getTime()) / 864e5);
@@ -24,12 +24,12 @@
     const warm = WARM[((d % WARM.length) + WARM.length) % WARM.length];
     const steps = [
       { id: "warm", mins: 2, title: `Warm up: ${VL.vocab.itemName("v:" + warm)}`, text: "On “doo,” quiet and light.", go: () => VL.vocab.run("v:" + warm, "doo") },
-      { id: "block", mins: 3, title: `${D.BLOCKS[riff].name}: ${STEP_NAMES[step]}`, text: `Ladder step ${step} of 5.`, go: () => { VL.go("riffs"); setTimeout(() => { document.getElementById("riff-" + riff).scrollIntoView({ block: "start" }); VL.blocks.runLadder(riff, step); }, 60); } },
+      { id: "block", mins: 3, title: `${D.BLOCKS[riff].name}: ${STEP_NAMES[step]}`, text: `Ladder step ${step} of 5.`, go: () => { VL.go("riffs"); setTimeout(() => { VL.reveal(document.getElementById("riff-" + riff)); VL.blocks.runLadder(riff, step); }, 60); } },
       { id: "changes", mins: 4, title: `${progName(prog)}: one scale, sing along`, text: "Follow the piano's riffs.", go: () => VL.changes.runPreset({ cProg: prog, cApproach: "key", cMode: "along", cPlace: "phrase", cLoops: 4 }) }
     ];
     if (st.sLen >= 15) {
       steps.push({ id: "arr", mins: 3, title: `Arrange: ${progName(prog)}`, text: "Lock two or three riffs into the loop, then sing along.", go: () => VL.changes.openArranger(prog) });
-      steps.splice(2, 0, { id: "shape", mins: 2, title: `Move the ${D.BLOCKS[shape].name}`, text: "The same shape from every scale step.", go: () => { VL.go("riffs"); setTimeout(() => { document.getElementById("shapes").scrollIntoView({ block: "start" }); VL.blocks.runShapes(shape); }, 60); } });
+      steps.splice(2, 0, { id: "shape", mins: 2, title: `Move the ${D.BLOCKS[shape].name}`, text: "The same shape from every scale step.", go: () => { VL.go("riffs"); setTimeout(() => { VL.reveal(document.getElementById("shapes")); VL.blocks.runShapes(shape); }, 60); } });
       steps.push({ id: "vocab", mins: 3, title: `New lick: ${VL.vocab.itemName("v:" + voc)}`, text: "Build it from the last notes backward.", go: () => VL.vocab.run("v:" + voc, "back") });
     }
     if (st.sLen >= 20) {

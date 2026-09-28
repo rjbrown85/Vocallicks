@@ -12,7 +12,7 @@
         <p>Every drill opens with a count-in. With Tight spacing that's two clicks, and Roomy gives you the original four. Changes always counts a full bar, since the band needs a bar to settle into its groove.</p>
         <p>A tight round lasts as long as the riff plus one beat of air, rounded up to a whole beat, so a Quick Dip takes two beats instead of a full bar. In echo rounds you get the same stretch of time to sing it back. Roomy keeps every round on whole 4/4 bars, which helps when a riff is brand new and you want time to reset. The key walk's chord takes two beats with Tight spacing and a full bar with Roomy.</p>
         <p>When a run ends, rate it Clean, Almost, or Messy. Ratings feed the log, the Progress table, and the ladder step the daily routine picks. A Clean rating below 100 bpm offers a five-bpm bump. The Next button starts the following step right away: the next ladder step for her five riffs, the next method in the workbench, or the next item in today's routine.</p>
-        <p>Everything you can adjust lives in the one Setup drawer. Your lowest and highest notes decide where every riff sits. The riff key and scale drive the Riffs chapter, while the band settings (progression, song key, style, and your part) drive Changes.</p>` },
+        <p>Everything you can adjust lives in the one Setup drawer. Your lowest and highest notes decide where every riff sits. The riff key and scale drive the Riffs chapter, while the band settings (progression, song key, style, and your part) drive Changes. On the Changes page, the dock along the bottom keeps Play, the progression, key, style, mode, tempo, and riff choice on screen. Changing any of them while the loop plays restarts it with the new setting.</p>` },
 
       { id: "g-riffs", title: "The five riffs", body: `
         <p>Crystal Cherelle's five building blocks all start from the same home note, and each one has a five-step ladder. Her demo tempo is 100 bpm, so the speed-up step climbs from your tempo toward that.</p>
@@ -38,7 +38,7 @@
         <dl class="gl">${D.COMBOS.map(c => `<div><dt>${c.n ? "Combo " + c.n : "Honorable mention"}: ${esc(c.b.map(x => D.BLOCKS[x].name).join(" + "))}</dt><dd>${esc(c.note)}</dd></div>`).join("")}</dl>` },
 
       { id: "g-progs", title: "The progressions", body: `
-        <p>${D.PROGRESSIONS.filter(p => !p.custom).length} loops in two groups. The Aeolian vamp and the Axis are the easiest places to start, because one pentatonic covers every chord. The session routine walks through them from easiest to hardest.</p>
+        <p>${D.PROGRESSIONS.filter(p => !p.custom).length} loops, grouped by style and decade. The Aeolian vamp and the Axis are the easiest places to start, because one pentatonic covers every chord. The session routine walks through them from easiest to hardest.</p>
         <p><b>Make my own</b> builds a loop of two to eight chords. Pick a feel first (major, minor, Dorian, Mixolydian, or blues), then a chord for each slot: the first group holds the chords that belong to that feel, and the second holds common borrowed chords like ♭VII, iv, or a major V in minor. Each chord gets one bar (two with “2 bars per chord”), and you can hold the last chord twice as long. Your progressions appear under “My progressions,” work with every style, the arranger, and the recorder, and stay in this browser.</p>
         ${[...new Set(D.PROGRESSIONS.filter(p => !p.custom).map(p => p.group))].map(g => `<h4>${esc(g)}</h4><dl class="gl">${D.PROGRESSIONS.filter(p => p.group === g && !p.custom).map(p =>
           `<div><dt>${esc(p.name)} <span>${esc(numerals(p))}</span></dt><dd>${esc(p.note)} ${link(p.src.u, p.src.t)}</dd></div>`).join("")}</dl>`).join("")}` },
@@ -59,7 +59,8 @@
           <div><dt><i class="dot green"></i>Green spot</dt><dd>The riff fits and ends on a chord tone somewhere inside a chord.</dd></div>
           <div><dt><span class="chainlink static">link</span></dt><dd>Two riffs chain when the second starts within half a beat of the first one's end and within two half steps of its last note, so they sing as one phrase.</dd></div>
         </dl>
-        <p>Drag a chip onto the lane, or tap a chip and then tap a spot. Drag a placed riff to move it. Select one to nudge it to a higher or lower placement that still fits, jump to the previous or next spot, or remove it. On a keyboard, the arrow keys do the same and Delete removes it. “Suggest a chain” fills the loop with riffs that land on alternating chord changes and links in connecting riffs where they fit. Save an arrangement to find it again in the Session chapter.</p>` },
+        <p>Tap a chip to pick a riff, then tap any lit spot to drop it in. The riff stays picked, so you can keep tapping spots to add more copies, or press <b>Fill every chord</b> to put it on every chord change where it fits. Pick a different chip at any time to switch riffs, and tap the picked chip again to put it down. You can also drag a chip straight onto the lane. <b>Fill with a mix</b> lands a variety of riffs on alternating changes and links in connecting riffs, and <b>Undo</b> steps back through your edits.</p>
+        <p>Drag a placed riff to move it. Select one to nudge it to a higher or lower placement that still fits, jump to the previous or next spot, or remove it. On a keyboard, the arrow keys do the same and Delete removes it. Save an arrangement to find it again in the Session chapter.</p>` },
 
       { id: "g-cards", title: "Reading a chord card", body: `
         <p>Each card shows the chord's numeral, its name in your key, and its mode. <b>Riff</b> is the pentatonic (or blues scale, or chord tones) to riff from. <b>Land</b> lists the best landing notes in order, guide tones first, with the small label giving the note's role in the chord. <b>Avoid</b> lists scale notes a half step above a chord tone, which are fine in passing but rub if you hold them.</p>
@@ -100,15 +101,15 @@
   function open(id) {
     VL.go("guide");
     const el = document.getElementById(id);
-    if (el) setTimeout(() => el.scrollIntoView({ block: "start" }), 30);
+    if (el) setTimeout(() => VL.reveal(el), 30);
   }
 
   VL.guide = {
     init() {
       const secs = sections();
-      $("#guideToc").innerHTML = secs.map(s => `<button type="button" data-go="${s.id}">${esc(s.title)}</button>`).join("");
-      $("#guideBody").innerHTML = secs.map(s => `<section class="panel gsec" id="${s.id}"><h3>${esc(s.title)}</h3>${s.body}</section>`).join("");
-      document.querySelectorAll("#guideToc [data-go]").forEach(b => b.onclick = () => document.getElementById(b.dataset.go).scrollIntoView({ behavior: "smooth", block: "start" }));
+      $("#guideToc").innerHTML = secs.map(s => `<button type="button" data-tab="${s.id}">${esc(s.title)}</button>`).join("");
+      $("#guideBody").innerHTML = secs.map(s => `<section class="panel gsec" id="${s.id}" data-tab="${s.id}"><h3>${esc(s.title)}</h3>${s.body}</section>`).join("");
+      VL.makeTabs("guideBody", "#guideToc", "guideTab");
       document.addEventListener("click", e => { const q = e.target.closest("[data-guide]"); if (q) { e.preventDefault(); open(q.dataset.guide); } });
     },
     open

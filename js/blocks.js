@@ -266,7 +266,7 @@
     init() {
       buildWalk(); buildRiffs(); buildShapeChips(); buildCombos(); buildBuilder(); bindClear();
       $("#shapeAll").onclick = runAllShapes;
-      $$sub();
+      VL.makeTabs("ch-riffs", "#riffTabs", "riffTab");
       renderLog(); refresh();
       VL.onSettings(refresh); VL.onLog(renderLog);
     },
@@ -277,7 +277,5 @@
     spell: m => pn(m, keyShift()),
     tonicMidi: () => S().tonic + keyShift()
   };
-  function $$sub() {
-    document.querySelectorAll("#ch-riffs .subnav [data-go]").forEach(b => b.onclick = () => { const el = document.getElementById(b.dataset.go); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); });
-  }
+
 })();

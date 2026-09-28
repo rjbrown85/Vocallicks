@@ -123,6 +123,7 @@
     if (user) VL.bar.mode("off");
   };
   A.isRunning = () => !!running;
+  A.current = () => running;
 
   /* ---------- rep-based runs (used by the Riffs chapter) ----------
      rep: {notes:[{midi,beats,vel}], tempo, echo, solo, staccato, target, tonic, pad, chord, label, syll, onStart} */

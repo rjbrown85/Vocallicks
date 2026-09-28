@@ -12,7 +12,7 @@
     set: "minor", key: 4, tempo: 70, cap: 72, low: 52, oct: 0, mode: "echo", sound: "piano", spacing: "tight",
     wItem: "r:qd", wLow: 57, wHigh: 72, wReps: 4, wMode: "along",
     cProg: "axis", cKey: 7, cStyle: "rnb", cBars: 1, cLoops: 4, cMode: "listen", cApproach: "key", cFlavor: "sweet", cRiff: "qd", cPlace: "every", cSource: "auto",
-    vItem: "v:cas3", vMethod: "doo", sLen: 15, chapter: "riffs"
+    vItem: "v:cas3", vMethod: "doo", sLen: 15, chapter: "riffs", riffTab: "riffs", guideTab: "g-runs"
   };
   const st = VL.st = Object.assign({}, DEF);
   try {
@@ -98,6 +98,8 @@
     window.scrollTo({ top: 0 });
     (VL.onShow[ch] || []).forEach(f => f());
     if (VL.drawSummary) VL.drawSummary();
+    VL.fitNav();
+    const dock = $("#dock"); if (dock) { dock.hidden = ch !== "changes"; document.body.classList.toggle("hasdock", ch === "changes"); VL.fitDock(); }
   };
   VL.onShow = {};
   VL.whenShown = (ch, fn) => (VL.onShow[ch] = VL.onShow[ch] || []).push(fn);
@@ -108,6 +110,41 @@
     VL.go(known(h) ? h : st.chapter, false);
     window.addEventListener("hashchange", () => { const x = location.hash.slice(1); if (known(x)) VL.go(x, false); });
   };
+
+  /* ---------- tabs: show one section at a time instead of one long scroll ----------
+     container holds sections with data-tab; nav holds buttons with matching data-tab. */
+  const TABS = {};
+  VL.makeTabs = function (containerId, navSel, stKey) {
+    const box = document.getElementById(containerId), nav = document.querySelector(navSel);
+    const show = name => {
+      const secs = [...box.querySelectorAll(":scope > [data-tab]")];
+      if (!secs.some(s => s.dataset.tab === name)) name = secs[0].dataset.tab;
+      secs.forEach(s => { s.hidden = s.dataset.tab !== name; });
+      nav.querySelectorAll("[data-tab]").forEach(b => { b.setAttribute("aria-selected", b.dataset.tab === name); b.setAttribute("role", "tab"); });
+      st[stKey] = name; VL.save();
+      (VL.onTab[containerId] || []).forEach(f => f(name));
+    };
+    nav.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { show(b.dataset.tab); nav.scrollIntoView({ block: "nearest" }); });
+    TABS[containerId] = show;
+    show(st[stKey]);
+    return show;
+  };
+  VL.onTab = {};
+  /* bring any element into view, switching to its tab first if it lives in one */
+  VL.reveal = function (el, smooth) {
+    if (!el) return;
+    const sec = el.closest("[data-tab]"), box = sec && sec.parentElement;
+    if (sec && box && TABS[box.id] && sec.hidden) TABS[box.id](sec.dataset.tab);
+    el.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+  };
+  /* keep the page padding and the now-playing bar clear of the Changes dock */
+  VL.fitNav = function () { const n = $(".chapnav"); if (n) document.documentElement.style.setProperty("--navh", n.offsetHeight + "px"); };
+  window.addEventListener("resize", () => VL.fitNav());
+  VL.fitDock = function () {
+    const d = $("#dock"); const h = d && !d.hidden ? d.offsetHeight : 0;
+    document.documentElement.style.setProperty("--dockh", h + "px");
+  };
+  window.addEventListener("resize", () => VL.fitDock());
 
   /* ---------- small UI helpers ---------- */
   /* staircase: notes [{midi, beats, color, on, acc, label, alt}] */

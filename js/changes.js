@@ -24,6 +24,12 @@
   const persist = () => { try { localStorage.setItem(WORKKEY, JSON.stringify(work)); localStorage.setItem(SAVEKEY, JSON.stringify(saved)); } catch (e) {} };
   const items = () => (work[st.cProg] = work[st.cProg] || []);
   const setItems = arr => { work[st.cProg] = arr; persist(); };
+  /* undo: a snapshot of the arrangement before each edit (per progression) */
+  let undoStack = [], undoProg = null;
+  function snap() {
+    if (undoProg !== st.cProg) { undoStack = []; undoProg = st.cProg; }
+    undoStack.push(items().map(i => Object.assign({}, i))); if (undoStack.length > 50) undoStack.shift();
+  }
 
   /* ---------- your own progressions (stored in this browser, merged into the list) ---------- */
   const CUSTOMKEY = "vl-custom-progs";
@@ -386,11 +392,13 @@
   function clearGhost() { preview = null; document.querySelectorAll("#cLane .ghost").forEach(e => e.remove()); document.querySelectorAll("#cLane .spot.on").forEach(d => d.classList.remove("on")); }
 
   function placeAt(rid, start, moving) {
+    snap();
     const arr = items().filter(it => it !== moving);
     const it = moving ? Object.assign(moving, { start, nudge: 0 }) : { rid, start, nudge: 0 };
     arr.push(it);
     setItems(arr);
-    selItem = it; selRid = null; preview = null;
+    // a palette pick stays picked, so you can keep tapping spots to add more of it
+    selItem = it; if (moving) selRid = null; preview = null;
     if (VL.audio.isRunning()) VL.audio.stop(true);
     draw();
     focusGrab(it);
@@ -454,9 +462,32 @@
     const pl = lastC.placed.find(p => p.item === it); if (!pl) return;
     const nv = Math.max(pl.nudgeMin, Math.min(pl.nudgeMax, (it.nudge || 0) + d));
     if (nv === (it.nudge || 0)) return;
-    it.nudge = nv; setItems(items()); draw(); focusGrab(it);
+    snap(); it.nudge = nv; setItems(items()); draw(); focusGrab(it);
   }
-  function removeItem(it) { setItems(items().filter(x => x !== it)); selItem = null; draw(); }
+  function removeItem(it) { snap(); setItems(items().filter(x => x !== it)); selItem = null; draw(); }
+  /* put one riff on every chord change it can land on, keeping what's already there */
+  let fillMsg = null;
+  function fillEvery(rid) {
+    const r = riffById(rid); snap();
+    const lead = r.beats.reduce((a, b) => a + b, 0) - r.beats[r.beats.length - 1];
+    let C = compute(); const bounds = C.starts.slice(1).concat([C.loopBeats]);
+    let added = 0;
+    bounds.forEach(b => {
+      C = compute();
+      const want = b - lead, spots = T.lockSpots(r, C.ctx, occupiedExcept(C, null));
+      let best = null;
+      spots.forEach(sp => {
+        const d = want - sp.start; if (d < -1e-6 || d > 2) return;          // land on this change, or at most 2 beats before it
+        const score = d + (sp.rank === "gold" ? 0 : 0.75);
+        if (!best || score < best.score) best = { score, sp };
+      });
+      if (best) { setItems(items().concat([{ rid, start: best.sp.start, nudge: 0 }])); added++; }
+    });
+    selItem = null;
+    if (VL.audio.isRunning()) VL.audio.stop(true);
+    fillMsg = added ? `Added ${r.name} ${added}×. Tap more spots, pick another riff, or press Play.` : `${r.name} has no free spot left. Clear some riffs or pick a shorter one.`;
+    draw();
+  }
 
   /* ---------- arranger panel ---------- */
   function buildArranger() {
@@ -471,8 +502,13 @@
         pal.appendChild(b);
       });
     });
+    // phones get a compact dropdown instead of the chip palette
+    VL.select($("#aPick"), [{ value: "", label: "Pick a riff…" }, { group: "Her five blocks", items: RIFFS.blocks.map(r => ({ value: r.id, label: r.name })) }, { group: "Licks", items: RIFFS.vocab.map(r => ({ value: r.id, label: r.name })) }, { group: "Scale runs", items: RIFFS.runs.map(r => ({ value: r.id, label: r.name })) }], "");
+    $("#aPick").onchange = e => { selRid = e.target.value || null; selItem = null; refreshArranger(); };
+    $("#aFill").onclick = () => selRid && fillEvery(selRid);
+    $("#aUndo").onclick = () => { const prev = undoStack.pop(); if (prev) { setItems(prev); selItem = null; draw(); } };
     $("#aSuggest").onclick = () => {
-      const C = lastC;
+      const C = lastC; snap();
       const pool = RIFFS.all.filter(r => SUGGEST_POOL.includes(r.id));
       const existing = C.placed.map(p => ({ rid: p.item.rid, start: p.item.start, nudge: p.item.nudge, span: p.span, lastMidi: p.lastMidi }));
       setItems(T.suggestChain(pool, C.ctx, existing)); selItem = null; draw();
@@ -483,7 +519,7 @@
     $("#aClear").onclick = e => {
       const b = e.currentTarget;
       if (!armed) { armed = true; b.textContent = "Tap again to clear"; setTimeout(() => { armed = false; b.textContent = "Clear"; }, 3000); return; }
-      armed = false; b.textContent = "Clear"; setItems([]); selItem = null; draw();
+      armed = false; b.textContent = "Clear"; snap(); setItems([]); selItem = null; draw();
     };
     $("#aUp").onclick = () => selItem && nudge(selItem, 1);
     $("#aDown").onclick = () => selItem && nudge(selItem, -1);
@@ -507,6 +543,13 @@
   }
   function drawArrangerPanel(C) {
     document.querySelectorAll("#aPalette .pchip").forEach(b => b.setAttribute("aria-pressed", b.dataset.rid === selRid));
+    const pick = selRid ? riffById(selRid) : null;
+    $("#aPick").value = selRid || "";
+    $("#aFill").disabled = !pick; $("#aFill").textContent = pick ? `Fill every chord with ${pick.name}` : "Fill every chord";
+    if (undoProg !== st.cProg) { undoStack = []; undoProg = st.cProg; }
+    $("#aUndo").disabled = !undoStack.length;
+    if (fillMsg) { $("#aHint").textContent = fillMsg; fillMsg = null; }
+    else $("#aHint").textContent = pick ? `${pick.name} is picked. Tap any lit spot to add it (it stays picked), or fill every chord at once.` : "Pick a riff, then tap the lit spots. It stays picked, so you can keep adding.";
     const pl = C.placed.find(p => p.item === selItem);
     const tools = $("#aTools");
     tools.hidden = !pl;
@@ -643,7 +686,7 @@
       const i = customs.findIndex(c => c.id === id);
       if (i >= 0) customs[i] = rec; else customs.push(rec);
       if (pb.id) delete work[id];
-      saveCustoms(); persist(); mergeCustoms(); buildProgSelect();
+      saveCustoms(); persist(); mergeCustoms(); buildProgSelect(); cloneDock();
       closeBuilder();
       if (VL.audio.isRunning()) VL.audio.stop(true);
       st.cProg = id; current = 0; selItem = null; VL.changed();
@@ -653,7 +696,7 @@
       if (!rmArmed) { rmArmed = true; b.textContent = "Tap again to delete"; setTimeout(() => { rmArmed = false; b.textContent = "Delete"; }, 3000); return; }
       rmArmed = false; b.textContent = "Delete";
       customs = customs.filter(c => c.id !== pb.id); delete work[pb.id];
-      saveCustoms(); persist(); mergeCustoms(); buildProgSelect();
+      saveCustoms(); persist(); mergeCustoms(); buildProgSelect(); cloneDock();
       if (st.cProg === pb.id) st.cProg = "axis";
       closeBuilder(); current = 0; selItem = null; VL.changed();
     };
@@ -677,17 +720,50 @@
       const el = $(id); el.value = st[key];
       el.addEventListener("change", e => { st[key] = num ? +e.target.value : e.target.value; if (key === "cProg") { current = 0; selItem = null; } if (VL.audio.isRunning()) VL.audio.stop(true); VL.changed(); });
     });
-    $("#cPlay").onclick = () => VL.audio.run(buildPlan());
     const toBand = () => VL.openSetup(true, "#setupBand");
-    $("#cOpenSetup").onclick = toBand;
     $("#cSummary").onclick = toBand;
     $("#cSummary").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toBand(); } };
   }
 
+  /* ---------- the dock: play and the main band settings, always on screen in Changes ---------- */
+  const DOCK = [["#dProg", "#cProg", "cProg"], ["#dKey", "#cKey", "cKey", 1], ["#dStyle", "#cStyle", "cStyle"], ["#dMode", "#cMode", "cMode"]];
+  function cloneDock() {
+    DOCK.forEach(([d, c]) => { $(d).innerHTML = $(c).innerHTML; });
+    $("#dMode").innerHTML = '<option value="listen">Listen</option><option value="along">Sing along</option><option value="echo">Echo</option><option value="free">Free riff</option>';
+    // one "Riffs" menu: your arrangement, or any riff placed for you on every chord
+    VL.select($("#dRiffs"), [{ value: "mine", label: "My arrangement" },
+      { group: "Placed for me", items: RIFFS.all.map(r => ({ value: r.id, label: r.name })) }]);
+    syncDock();
+  }
+  function syncDock() {
+    DOCK.forEach(([d, , k]) => { $(d).value = st[k]; });
+    $("#dTempo").textContent = st.tempo; $("#dRiffs").value = st.cSource === "mine" ? "mine" : st.cRiff;
+  }
+  // change a setting; if the loop is playing, restart it with the new setting instead of stopping cold
+  function liveChange(fn) {
+    const was = VL.audio.isRunning() && VL.audio.current && VL.audio.current() && VL.audio.current().meta && VL.audio.current().meta.chapter === "changes";
+    fn();
+    if (VL.audio.isRunning()) VL.audio.stop(true);
+    VL.changed();
+    if (was) setTimeout(() => VL.audio.run(buildPlan()), 40);
+  }
+  function setPlay(on) { const b = $("#dPlay"); b.textContent = on ? "■ Stop" : "▶ Play"; b.classList.toggle("stop", on); b.setAttribute("aria-label", on ? "Stop" : "Play the loop"); }
+  function bindDock() {
+    cloneDock();
+    DOCK.forEach(([d, , k, num]) => $(d).addEventListener("change", e => liveChange(() => { st[k] = num ? +e.target.value : e.target.value; if (k === "cProg") { current = 0; selItem = null; } })));
+    $("#dRiffs").addEventListener("change", e => liveChange(() => { const v = e.target.value; if (v === "mine") st.cSource = "mine"; else { st.cSource = "auto"; st.cRiff = v; } }));
+    const step = n => liveChange(() => { st.tempo = Math.max(40, Math.min(120, st.tempo + n)); VL.syncSetup(); });
+    $("#dSlower").onclick = () => step(-5); $("#dFaster").onclick = () => step(5);
+    $("#dPlay").onclick = () => { if (VL.audio.isRunning()) VL.audio.stop(true); else VL.audio.run(buildPlan()); };
+    $("#dSetup").onclick = () => VL.openSetup(true, "#setupBand");
+    VL.audio.hooks.start.push(() => setPlay(true));
+    VL.audio.hooks.end.push(() => setPlay(false));
+  }
+
   VL.changes = {
     init() {
-      buildControls(); buildArranger(); bindBuilder(); draw();
-      VL.onSettings(() => { syncControls(); draw(); if (pb) drawBuilder(); });
+      buildControls(); buildArranger(); bindBuilder(); bindDock(); draw();
+      VL.onSettings(() => { syncControls(); syncDock(); draw(); if (pb) drawBuilder(); });
       VL.whenShown("changes", draw);
       let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (lastC) drawLane(lastC); }, 200); });
     },
