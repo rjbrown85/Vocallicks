@@ -1,6 +1,7 @@
 /* Run: node tests/theory.test.js */
 const T = require("../js/theory.js");
-const { PROGRESSIONS } = require("../js/data.js");
+const D2 = require("../js/data.js");
+const { PROGRESSIONS } = D2;
 let fails = 0, checks = 0;
 const ok = (c, msg) => { checks++; if (!c) { fails++; console.log("FAIL:", msg); } };
 const nm = pc => T.SHARP[pc];
@@ -68,5 +69,48 @@ for (const p of PROGRESSIONS) {
     }
   }
 }
+
+/* 6. Arranger: every lock spot's best placement obeys the per-note rules */
+const RIFFS = D2.ORDER.map(k => ({ id: k, kind: "pent", steps: D2.SETS.minor.blocks[k].n, beats: D2.SETS.minor.blocks[k].b }))
+  .concat(D2.VOCAB.filter(v => v.land).map(v => ({ id: v.id, kind: v.kind, steps: v.steps, beats: v.beats })));
+let spotsTotal = 0, gold = 0, chains = 0;
+for (const p of PROGRESSIONS) {
+  for (const style of ["rock", "rnb", "blues", "jazz"]) {
+    for (const key of [0, 4, 7, 10]) {
+      for (const approach of ["key", "chord"]) {
+        const ctx = T.loopContext(p, { key, style, approach, flavor: "sweet", lo: 50, hi: 72, bars: 1 });
+        for (const r of RIFFS) {
+          const spots = T.lockSpots(r, ctx, []);
+          spots.forEach(sp => {
+            spotsTotal++; if (sp.rank === "gold") gold++;
+            const c = sp.best;
+            c.notes.forEach(nt => {
+              ok(nt.midi >= 50 && nt.midi <= 72, "arranged note in range");
+              const ci = T.chordIndexAt(ctx, nt.beat), info = ctx.infos[ci], ch = ctx.chords[ci], pc = T.mod(nt.midi);
+              if (nt.last) ok(ch.pcs.includes(pc), `${p.id}: arranged riff ends on a chord tone`);
+              else if (nt.dur >= 0.5 && !nt.alt) {
+                ok(info.modePcs.includes(pc) || ch.pcs.includes(pc), `${p.id}/${style}: held note fits its chord's mode`);
+                ok(!info.avoid.some(a => a.pc === pc), `${p.id}/${style}: held note is not an avoid note`);
+              }
+            });
+          });
+        }
+        const items = T.suggestChain(RIFFS.filter(r => ["qd", "sl", "qdt", "sw", "skip", "turn"].includes(r.id)), ctx, []);
+        let prevEnd = -1, prevLast = null;
+        items.sort((a, b) => a.start - b.start).forEach(it => {
+          const r = RIFFS.find(x => x.id === it.rid);
+          const pl = T.placeItem(r, it.start, ctx, prevLast, 0);
+          ok(!!pl, `${p.id}: suggested riff has a placement`);
+          if (!pl) return;
+          const [a, b] = T.riffSpan(pl);
+          ok(a >= prevEnd - 1e-6, `${p.id}/${style}/${approach}: suggested riffs don't overlap`);
+          if (prevLast != null && Math.abs(pl.first - prevLast) <= 2 && a - prevEnd <= 1) chains++;
+          prevEnd = b; prevLast = pl.lastMidi;
+        });
+      }
+    }
+  }
+}
+console.log(`Arranger: ${spotsTotal} lock spots checked (${gold} gold), ${chains} chained joins in suggestions.`);
 console.log(`${checks} checks, ${fails} failures. ${combos} chord contexts, ${landings} landings (${altered} needed a bent last note).`);
 process.exit(fails ? 1 : 0);
