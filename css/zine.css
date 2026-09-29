@@ -634,3 +634,4 @@ body.hasdock .bar{bottom:var(--dockh,90px)}
   .lv{width:20px;height:20px;margin-right:2px}
   .sd{width:11px;height:11px;margin-right:2px}
 }
+.soundrow{gap:12px;align-items:center;flex-wrap:nowrap}.soundrow p{flex:1}@media (max-width:560px){.soundrow{flex-wrap:wrap}}
