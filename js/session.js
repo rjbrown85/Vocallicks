@@ -175,14 +175,23 @@
   function markDone(id) { if (!day.done.includes(id)) day.done.push(id); saveDay(); drawPlayer(); drawStreak(); }
   function drawPlayer() {
     list = steps();
-    const strip = $("#sStrip"); strip.innerHTML = "";
-    list.forEach((s, i) => {
-      const li = document.createElement("li");
-      li.className = `p${s.part}` + (day.done.includes(s.id) ? " done" : "") + (i === day.i ? " now" : "");
-      const r = s.id.startsWith("b-") ? day.ratings[s.id.slice(2)] : null;
-      li.innerHTML = `<button type="button" title="${VL.esc(s.title)}"><small>${i + 1}</small><span class="stitle">${VL.esc(s.title)}</span>${r ? `<i class="rate-chip ${r}">${r}</i>` : ""}</button>`;
-      li.querySelector("button").onclick = () => { VL.audio.stop(true); day.i = i; saveDay(); drawPlayer(); };
-      strip.appendChild(li);
+    // the three parts as a map: every step is a pill you can jump to
+    const box = $("#sParts"); box.innerHTML = "";
+    const NAMES = { 1: "Five-block check", 2: "Blocks over the changes", 3: "Runs and licks" };
+    [1, 2, 3].forEach(p => {
+      const items = list.map((s, i) => ({ s, i })).filter(x => x.s.part === p);
+      const done = items.filter(x => day.done.includes(x.s.id)).length;
+      const col = document.createElement("div"); col.className = `spart p${p}` + (items.some(x => x.i === day.i) ? " cur" : "") + (done === items.length ? " complete" : "");
+      col.innerHTML = `<p class="sph"><b>Part ${p}</b><span>${NAMES[p]}</span><em>${done}/${items.length}</em></p><div class="spills"></div>`;
+      items.forEach(({ s, i }) => {
+        const r = s.id.startsWith("b-") ? day.ratings[s.id.slice(2)] : null;
+        const b = document.createElement("button"); b.type = "button";
+        b.className = "spill" + (day.done.includes(s.id) ? " done" : "") + (i === day.i ? " now" : "") + (r ? " r-" + r : "");
+        b.textContent = s.title; b.title = s.title + (r ? ` · rated ${r}` : "");
+        b.onclick = () => { VL.audio.stop(true); day.i = i; saveDay(); drawPlayer(); };
+        col.querySelector(".spills").appendChild(b);
+      });
+      box.appendChild(col);
     });
     const finished = day.i >= list.length, s = list[Math.min(day.i, list.length - 1)];
     $("#sPart").textContent = finished ? "Done for today" : PART[s.part];
@@ -194,7 +203,10 @@
       const k = s.id === "fix" ? weakest() : s.id.slice(2);
       if (k) { const { riffKey, fl } = ctx(), { notes } = VL.blocks.inKey(k, riffKey); VL.renderStair($("#sStair"), notes.map(n => ({ midi: n.midi, beats: n.beats, color: D.BLOCKS[k].c, on: D.BLOCKS[k].on, acc: n.acc })), mm => T.spell(mm, fl)); }
     }
-    if (!VL.audio.isRunning()) $("#sTotal").textContent = `${list.length} steps, about ${estimate(list)} minutes at today's tempos, all in ${progName(st.cProg)} (${T.KEYNAMES[st.cKey]}).`;
+    $("#sToday").textContent = `${progName(st.cProg)} in ${T.KEYNAMES[st.cKey]}`;
+    const fmtTxt = { rotate: "Rotate all five", one: `${bname(st.sOne)} on every chord`, weak: "Weakest riff" }[st.sFormat];
+    const modeTxt = { ladder: "listen, along, echo", listen: "listen", along: "sing along", echo: "echo", solo: "solo" }[st.sMode];
+    if (!VL.audio.isRunning()) $("#sTotal").textContent = `${T.STYLES[st.cStyle].name} · ${fmtTxt} (${modeTxt}) · about ${estimate(list)} min, ${list.length} steps`;
   }
   function drawMastery() {
     const tb = $("#sMast"); if (!tb) return; tb.innerHTML = "";
@@ -212,6 +224,7 @@
     VL.select($("#sOne"), D.ORDER.map(k => ({ value: k, label: bname(k) })), st.sOne);
     const bind = (sel, key, num) => $(sel).addEventListener("change", e => { st[key] = num ? +e.target.value : e.target.value; if (VL.audio.isRunning()) VL.audio.stop(true); VL.changed(); });
     bind("#sProgSel", "cProg"); bind("#sKeySel", "cKey", 1); bind("#sStyleSel", "cStyle"); bind("#sFormat", "sFormat"); bind("#sOne", "sOne"); bind("#sMode", "sMode"); bind("#sLen", "sLen", 1);
+    $("#sSetBtn").onclick = () => { const p = $("#sSettings"), open = p.hidden; p.hidden = !open; $("#sSetBtn").setAttribute("aria-expanded", open); $("#sSetBtn").textContent = open ? "Done" : "Change today's setup"; };
     $("#sSuggestUse").onclick = () => { st.cProg = pickDaily(EASY_TO_HARD); VL.changed(); };
     $("#sGo").onclick = () => { if (day.i >= list.length) { day = { i: 0, done: [], ratings: {} }; saveDay(); } runStep(day.i); };
     $("#sAgain").onclick = () => runStep(Math.max(0, Math.min(day.i, list.length - 1)));
@@ -353,6 +366,7 @@
   VL.session = {
     init() {
       buildControls(); syncControls();
+      VL.makeTabs("sMore", "#sMoreTabs", "sMoreTab");
       $("#rStart").onclick = startRecording;
       $("#sArrNew").onclick = () => VL.changes.openArranger(st.cProg);
       drawPlayer(); drawMastery(); drawStreak(); drawProgress(); recSummary(); drawTakes(); drawArrangements();

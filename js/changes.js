@@ -263,7 +263,7 @@
     let t;
     if (st.cSource === "mine") {
       const g = C.placed.filter(p => p.rank === "gold").length, ch = C.placed.filter(p => p.chain).length;
-      t = C.placed.length ? `${C.placed.length} riff${C.placed.length > 1 ? "s" : ""} · ${g} land on a change · ${ch} chained` : "Pick a riff below, then drag it onto the lane or tap a lit spot.";
+      t = C.placed.length ? `${C.placed.length} riff${C.placed.length > 1 ? "s" : ""} · ${g} land on a change · ${ch} chained` : "Pick a riff from Blocks, Licks, or Runs, then tap a lit spot.";
       if (C.invalid) t += ` · ${C.invalid} no longer fit${C.invalid > 1 ? "" : "s"} these settings`;
     } else {
       t = C.placed.length ? `${C.riff.name} lands ${C.placed.length}× per loop.${C.placed.some(p => p.altered) ? " Dashed = bent a half step." : ""}` : `${C.riff.name} is too long for these chord lengths. Try 2 bars per chord.`;
@@ -491,20 +491,12 @@
 
   /* ---------- arranger panel ---------- */
   function buildArranger() {
-    const pal = $("#aPalette"); pal.innerHTML = "";
-    [["Blocks", RIFFS.blocks], ["Licks", RIFFS.vocab], ["Runs", RIFFS.runs]].forEach(([g, list]) => {
-      const lab = document.createElement("span"); lab.className = "plabel"; lab.textContent = g; pal.appendChild(lab);
-      list.forEach(r => {
-        const b = document.createElement("button"); b.type = "button"; b.className = "chip pchip";
-        b.textContent = r.name; b.dataset.rid = r.id; b.style.setProperty("--c", r.c);
-        b.onpointerdown = e => startPaletteDrag(e, r.id);
-        b.onclick = () => { selRid = selRid === r.id ? null : r.id; selItem = null; refreshArranger(); };
-        pal.appendChild(b);
-      });
+    // three dropdowns: her blocks, licks, and runs. Picking from one clears the other two.
+    const PICKS = [["#aPickB", RIFFS.blocks, "Pick a block…"], ["#aPickL", RIFFS.vocab, "Pick a lick…"], ["#aPickR", RIFFS.runs, "Pick a run…"]];
+    PICKS.forEach(([id, list, ph]) => {
+      VL.select($(id), [{ value: "", label: ph }].concat(list.map(r => ({ value: r.id, label: r.name }))), "");
+      $(id).onchange = e => { selRid = e.target.value || null; selItem = null; refreshArranger(); };
     });
-    // phones get a compact dropdown instead of the chip palette
-    VL.select($("#aPick"), [{ value: "", label: "Pick a riff…" }, { group: "Her five blocks", items: RIFFS.blocks.map(r => ({ value: r.id, label: r.name })) }, { group: "Licks", items: RIFFS.vocab.map(r => ({ value: r.id, label: r.name })) }, { group: "Scale runs", items: RIFFS.runs.map(r => ({ value: r.id, label: r.name })) }], "");
-    $("#aPick").onchange = e => { selRid = e.target.value || null; selItem = null; refreshArranger(); };
     $("#aFill").onclick = () => selRid && fillEvery(selRid);
     $("#aUndo").onclick = () => { const prev = undoStack.pop(); if (prev) { setItems(prev); selItem = null; draw(); } };
     $("#aSuggest").onclick = () => {
@@ -544,7 +536,11 @@
   function drawArrangerPanel(C) {
     document.querySelectorAll("#aPalette .pchip").forEach(b => b.setAttribute("aria-pressed", b.dataset.rid === selRid));
     const pick = selRid ? riffById(selRid) : null;
-    $("#aPick").value = selRid || "";
+    [["#aPickB", RIFFS.blocks], ["#aPickL", RIFFS.vocab], ["#aPickR", RIFFS.runs]].forEach(([id, list]) => {
+      const sel = $(id), on = list.some(r => r.id === selRid);
+      sel.value = on ? selRid : ""; sel.closest(".apk").classList.toggle("on", on);
+      sel.style.setProperty("--c", on ? riffById(selRid).c : "var(--sheet)");
+    });
     $("#aFill").disabled = !pick; $("#aFill").textContent = pick ? `Fill every chord with ${pick.name}` : "Fill every chord";
     if (undoProg !== st.cProg) { undoStack = []; undoProg = st.cProg; }
     $("#aUndo").disabled = !undoStack.length;

@@ -12,7 +12,7 @@
     set: "minor", key: 4, tempo: 70, cap: 72, low: 52, oct: 0, mode: "echo", sound: "piano", spacing: "tight",
     wItem: "r:qd", wLow: 57, wHigh: 72, wReps: 4, wMode: "along",
     cProg: "axis", cKey: 7, cStyle: "rnb", cBars: 1, cLoops: 4, cMode: "listen", cApproach: "key", cFlavor: "sweet", cRiff: "qd", cPlace: "every", cSource: "auto",
-    vItem: "v:cas3", vMethod: "doo", sLen: 15, chapter: "riffs", riffTab: "riffs", guideTab: "g-runs", sFormat: "rotate", sOne: "qd", sMode: "ladder"
+    vItem: "v:cas3", vMethod: "doo", sLen: 15, chapter: "riffs", riffTab: "riffs", guideTab: "g-runs", sFormat: "rotate", sOne: "qd", sMode: "ladder", sMoreTab: "mastery"
   };
   const st = VL.st = Object.assign({}, DEF);
   try {
@@ -138,6 +138,8 @@
     if (!el) return;
     const sec = el.closest("[data-tab]"), box = sec && sec.parentElement;
     if (sec && box && TABS[box.id] && sec.hidden) TABS[box.id](sec.dataset.tab);
+    const track = el.closest(".cz-track");   // a card inside a carousel: slide to it
+    if (track) { const card = [...track.children].find(c => c.contains(el)); const cz = track.closest(".cz"); if (card && cz) { cz.czGo([...track.children].indexOf(card)); el = cz; } }
     el.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
   };
   /* keep the page padding and the now-playing bar clear of the Changes dock */
@@ -148,6 +150,49 @@
     document.documentElement.style.setProperty("--dockh", h + "px");
   };
   window.addEventListener("resize", () => VL.fitDock());
+
+  /* ---------- carousel: one card at a time, slide left/right like a presentation ----------
+     list: an element whose children are the cards. Call again after the cards are rebuilt. */
+  VL.carousel = function (list, name) {
+    let wrap = list.closest(".cz");
+    if (!wrap) {
+      wrap = document.createElement("div"); wrap.className = "cz"; wrap.setAttribute("aria-roledescription", "carousel");
+      list.parentNode.insertBefore(wrap, list);
+      const view = document.createElement("div"); view.className = "cz-view";
+      wrap.innerHTML = `<div class="cz-nav"><button type="button" class="cz-btn cz-prev" aria-label="Previous ${name}">‹</button><div class="cz-dots" role="tablist"></div><span class="cz-count"></span><button type="button" class="cz-btn cz-next" aria-label="Next ${name}">›</button></div>`;
+      wrap.insertBefore(view, wrap.firstChild); view.appendChild(list);
+      list.classList.add("cz-track");
+      const go = d => wrap.czGo(wrap.czI + d);
+      wrap.querySelector(".cz-prev").onclick = () => go(-1);
+      wrap.querySelector(".cz-next").onclick = () => go(1);
+      wrap.tabIndex = -1;
+      wrap.addEventListener("keydown", e => { if (e.target.closest("select,input")) return; if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); } if (e.key === "ArrowRight") { e.preventDefault(); go(1); } });
+      let x0 = null;   // swipe on phones
+      view.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+      view.addEventListener("touchend", e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1); x0 = null; });
+      wrap.czI = 0;
+      wrap.czGo = i => {
+        const cards = [...list.children], n = cards.length; if (!n) return;
+        wrap.czI = (i + n) % n;
+        list.style.transform = `translateX(${-wrap.czI * 100}%)`;
+        cards.forEach((c, k) => { c.setAttribute("aria-hidden", k !== wrap.czI); c.inert = k !== wrap.czI; });
+        view.style.height = cards[wrap.czI].offsetHeight + "px";
+        wrap.querySelectorAll(".cz-dots button").forEach((b, k) => b.setAttribute("aria-selected", k === wrap.czI));
+        wrap.querySelector(".cz-count").textContent = `${wrap.czI + 1} / ${n}`;
+      };
+      new ResizeObserver(() => wrap.czGo(wrap.czI)).observe(list);
+    }
+    const dots = wrap.querySelector(".cz-dots"); dots.innerHTML = "";
+    [...list.children].forEach((c, k) => {
+      const b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "tab");
+      const label = (c.querySelector("h3") || {}).textContent || `${name} ${k + 1}`;
+      b.setAttribute("aria-label", label); b.title = label;
+      b.style.setProperty("--c", getComputedStyle(c).getPropertyValue("--c") || "var(--ink)");
+      b.onclick = () => wrap.czGo(k); dots.appendChild(b);
+    });
+    wrap.czGo(Math.min(wrap.czI, list.children.length - 1));
+    return wrap;
+  };
 
   /* ---------- small UI helpers ---------- */
   /* staircase: notes [{midi, beats, color, on, acc, label, alt}] */

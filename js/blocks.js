@@ -74,6 +74,7 @@
       a.querySelectorAll(".step").forEach(b => b.onclick = () => run(ladderPlan(k, +b.dataset.step)));
       list.appendChild(a);
     });
+    VL.carousel(list, "riff");
   }
   function drawRiff(k, shift) {
     const a = $("#riff-" + k), ns = notesFor(k, shift);
@@ -146,6 +147,7 @@
       a.querySelectorAll("[data-k]").forEach(b => b.onclick = () => run(comboPlan(c.b, b.dataset.k, tg, label)));
       a.dataset.blocks = c.b.join(","); list.appendChild(a);
     });
+    VL.carousel(list, "combo");
   }
   function drawCombos() { const sh = keyShift(); document.querySelectorAll("#comboList .combo").forEach(a => renderStair(a.querySelector(".stair"), comboNotes(a.dataset.blocks.split(","), sh), sh)); }
 

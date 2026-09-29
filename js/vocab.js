@@ -131,6 +131,7 @@
       });
       list.appendChild(a);
     });
+    VL.carousel($("#vList"), "lick"); VL.carousel($("#vRuns"), "run");
   }
   function drawCards() {
     D.VOCAB.forEach(v => { const a = $("#v-" + v.id); VL.renderStair(a.querySelector(".stair"), stairNotes(itemById("v:" + v.id)), spell); });
