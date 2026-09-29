@@ -537,3 +537,35 @@ body.hasdock .bar{bottom:var(--dockh,90px)}
 .cardgrid .panel{padding:20px 18px 18px}
 @media (max-width:760px){.dsetup{display:none}}
 .combo-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,400px),1fr))}
+
+/* ===== v7: guided session ===== */
+.splayer{grid-column:1/-1}
+.sfields{grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));margin-bottom:6px}
+#sSuggest{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:8px 0}
+#sSuggest .btn{font-size:.85rem;padding:4px 10px}
+.sstrip{list-style:none;margin:14px 0 12px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.sstrip button{font:inherit;font-family:"Dela Gothic One","Arial Black",sans-serif;font-size:.85rem;display:inline-flex;align-items:center;gap:6px;
+  background:var(--sheet);color:var(--ink);border:2px solid var(--ink);padding:4px 10px;cursor:pointer}
+.sstrip small{font-family:"Courier Prime",monospace;font-weight:700;font-size:.72rem;background:var(--ink);color:var(--sheet);padding:0 5px}
+.sstrip .p1 small{background:var(--pink)}.sstrip .p2 small{background:var(--blue)}.sstrip .p3 small{background:var(--green)}
+.sstrip .done button{background:#E3F4E6}
+.sstrip .now button{box-shadow:3px 3px 0 var(--ink);transform:translateY(-2px);background:var(--yellow)}
+.sstrip .rate-chip{font-size:.7rem;padding:0 5px}
+.scard{border:2.5px solid var(--ink);background:#fff;padding:16px 18px;display:grid;gap:10px}
+.scard h3{font-size:clamp(1.3rem,3.5vw,1.8rem)}
+.scard .kicker{font-family:"Dela Gothic One","Arial Black",sans-serif;color:var(--soft);font-size:.95rem}
+.scard .stair-wrap{margin:0}
+.lvls{white-space:nowrap}
+.lv{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:4px;border:2px solid var(--ink);font-family:"Dela Gothic One",sans-serif;font-size:.75rem;background:var(--sheet);color:var(--soft)}
+.lv.on{background:var(--green);color:var(--ink)}
+.sd{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);margin-right:4px}
+.sd.on{background:var(--yellow)}
+.mdot{display:inline-block;width:12px;height:12px;border:2px solid var(--ink);background:var(--c);margin-right:8px;vertical-align:-1px}
+.mkey{font-size:.9rem;margin-top:10px}
+@media (max-width:560px){
+  .sstrip{gap:5px}
+  .sstrip li:not(.now) .stitle,.sstrip li:not(.now) .rate-chip{display:none}
+  .sstrip small{font-size:.8rem;padding:1px 6px}
+  .scard .bigplay{font-size:1.05rem;padding:10px 16px}
+}
+.sfields{grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))}
