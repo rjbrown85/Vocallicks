@@ -48,6 +48,7 @@
     buildSetup(); VL.syncSetup();
     VL.bar.init();
     VL.audio.loadPiano();
+    $("#soundTest").onclick = () => VL.audio.test();
     VL.blocks.init();
     VL.changes.init();
     VL.vocab.init();

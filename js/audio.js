@@ -13,7 +13,14 @@
   A.soundStatus = function () {
     const el = $("#soundStatus"); if (!el) return;
     if (st.sound === "synth") { el.textContent = "Using the simple synth."; return; }
-    el.textContent = pianoReady ? "Grand piano loaded." : pianoFailed ? "The grand piano didn't load, so the simple synth will play instead. Reloading the page usually fixes it." : "Loading the grand piano…";
+    el.textContent = (pianoReady ? "Grand piano loaded." : pianoFailed ? "The grand piano didn't load, so the simple synth will play instead. Tap anywhere to try again, or reload the page." : "Loading the grand piano…")
+      + (IOS ? " On iPad or iPhone, tap Test sound once; if it's silent, check the volume and turn off Silent mode." : "");
+  };
+  /* a short piano arpeggio to check sound */
+  A.test = function () {
+    const tl = A.timeline(); [60, 64, 67, 72].forEach((m, i) => tl.note(i * .18, m, 1.2, .8)); tl.end = 1.8;
+    A.run({ tl, title: "Sound check", noRate: true });
+    VL.bar.status("Sound check", pianoReady && st.sound === "piano" ? "Grand piano" : "Simple synth");
   };
   A.loadPiano = function () {
     if (!HAS_TONE) { A.soundStatus(); return; }
@@ -22,14 +29,42 @@
     } catch (e) { pianoFailed = true; A.soundStatus(); }
   };
   A.ctx = function () {
+    iosPlayback();
     if (!ctx) {
       ctx = HAS_TONE ? Tone.getContext().rawContext : new (window.AudioContext || window.webkitAudioContext)();
       master = ctx.createGain(); master.gain.value = .9; master.connect(ctx.destination);
       A.master = master;
     }
-    if (HAS_TONE) Tone.start().catch(() => {}); else if (ctx.state === "suspended") ctx.resume();
+    if (HAS_TONE) Tone.start().catch(() => {});
+    // iPad/iPhone can leave the context "suspended" or "interrupted" (after a call, lock screen, or switching apps)
+    if (ctx.state !== "running") { try { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
     return ctx;
   };
+
+  /* ---------- iPad / iPhone ----------
+     1. Web Audio is silenced by Silent mode unless the page asks for "playback" audio. Safari 16.4+ has
+        navigator.audioSession for that; older iOS gets the same effect from a silent looping <audio> element.
+     2. Audio must be unlocked by a real touch: on the first one, resume the context and play one silent sample.
+     3. If the grand piano samples failed to load (common on a flaky connection), try again on that touch. */
+  const SILENT = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+  const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let silentEl = null, unlocked = false, retried = false;
+  function iosPlayback() {
+    try { if (navigator.audioSession && navigator.audioSession.type !== "playback") navigator.audioSession.type = "playback"; } catch (e) {}
+    if (IOS && !navigator.audioSession && !silentEl) {
+      try { silentEl = new Audio(SILENT); silentEl.loop = true; silentEl.setAttribute("playsinline", ""); const p = silentEl.play(); if (p && p.catch) p.catch(() => { silentEl = null; }); } catch (e) { silentEl = null; }
+    }
+  }
+  function unlock() {
+    const c = A.ctx();
+    try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {}
+    if (pianoFailed && HAS_TONE && !retried) { retried = true; pianoFailed = false; A.loadPiano(); }
+    if (c.state === "running") unlocked = true;
+    A.soundStatus();
+  }
+  ["touchend", "pointerup", "click", "keydown"].forEach(ev => document.addEventListener(ev, () => { if (!unlocked || !ctx || ctx.state !== "running") unlock(); }, { capture: true, passive: true }));
+  const relock = () => { if (ctx && ctx.state !== "running") unlocked = false; };
+  document.addEventListener("visibilitychange", relock); window.addEventListener("pageshow", relock); window.addEventListener("focus", relock);
   function makeSampler(out) {
     if (st.sound !== "piano" || !pianoReady) return null;
     try {
@@ -79,8 +114,20 @@
     };
   };
 
+  let runToken = 0;
   A.run = function (plan) {
     A.stop(false); A.ctx();
+    // don't schedule against a clock that isn't moving yet: wait for the context to start (it usually already has)
+    if (ctx.state !== "running") {
+      const tok = ++runToken; running = plan; VL.bar.mode("run"); VL.bar.status("Starting sound…", "If nothing plays, tap the screen once, or turn off Silent mode");
+      const go = () => { if (tok === runToken && running === plan) { running = null; startRun(plan); } };
+      Promise.resolve(ctx.resume && ctx.resume()).then(go, go);
+      setTimeout(go, 1500);
+      return;
+    }
+    startRun(plan);
+  };
+  function startRun(plan) {
     runGain = ctx.createGain(); runGain.connect(master);
     runSampler = makeSampler(runGain);
     const g = runGain, t0 = ctx.currentTime + .2;
@@ -102,7 +149,7 @@
     pump(); pumpTimer = setInterval(pump, 200);
     at(t0 + plan.tl.end + .05, finish);
     A.hooks.start.forEach(f => f(plan));
-  };
+  }
   function finish() {
     clearInterval(pumpTimer); pumpTimer = null; timers = []; VL.clearHits();
     const p = running; running = null;
@@ -114,6 +161,7 @@
     VL.bar.status("How did that go?", p ? p.title : "", false); VL.bar.mode("rate");
   }
   A.stop = function (user) {
+    runToken++;
     clearInterval(pumpTimer); pumpTimer = null; timers.forEach(clearTimeout); timers = []; VL.clearHits();
     if (runGain && ctx) { const g = runGain, s = runSampler; g.gain.setTargetAtTime(0, ctx.currentTime, .02); setTimeout(() => { g.disconnect(); if (s) s.dispose(); }, 300); runGain = null; runSampler = null; }
     const p = running;
