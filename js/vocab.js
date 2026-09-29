@@ -5,7 +5,8 @@
 
   /* realize a vocab pattern in the Setup key (the same key the Blocks drills use) */
   function range() { return { lo: st.low, hi: st.cap, center: st.low + (st.cap - st.low) * .55 }; }
-  function tonicPc() { return mod(st.key); }
+  let keyOverride = null;   // the Session plays licks in the progression's key
+  function tonicPc() { return keyOverride != null ? mod(keyOverride) : mod(st.key); }
   function vocabNotes(v) {
     const { lo, hi, center } = range();
     const key = tonicPc();
@@ -155,6 +156,18 @@
   VL.vocab = {
     init() { buildCards(); buildBench(); draw(); VL.onSettings(draw); },
     run(id, method) { VL.go("riffs"); setTimeout(() => VL.reveal($("#bench")), 30); st.vItem = id; st.vMethod = method; VL.changed(); setTimeout(() => VL.audio.runReps(methodPlan(itemById(id), method, $("#vStair"))), 50); },
-    itemName: id => { try { return itemById(id).name; } catch (e) { return id; } }
+    itemName: id => { try { return itemById(id).name; } catch (e) { return id; } },
+    /* a method plan for any item in a given minor-pentatonic key note */
+    planIn(id, method, target, keyPc) {
+      keyOverride = keyPc;
+      try {
+        const plan = methodPlan(itemById(id), method, target);
+        let t = st.low; while (mod(t) !== mod(keyPc)) t++;
+        plan.reps.forEach(r => { r.tonic = t; });
+        plan.keyText = T.SHARP[mod(keyPc)] + " minor pentatonic";
+        plan.next = null;
+        return plan;
+      } finally { keyOverride = null; }
+    }
   };
 })();

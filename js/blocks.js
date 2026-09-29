@@ -271,6 +271,19 @@
       VL.onSettings(refresh); VL.onLog(renderLog);
     },
     runLadder: (k, step) => run(ladderPlan(k, step)),
+    /* a block in minor pentatonic on any key note, placed inside your range (used by the Session) */
+    inKey(k, keyPc) {
+      const base = SETS.minor.tonic, lo = st.low, hi = st.cap, center = lo + (hi - lo) * .5;
+      let best = null;
+      for (let s = -30; s <= 30; s++) {
+        if (T.mod(base + s) !== T.mod(keyPc)) continue;
+        const ns = notesFor(k, s, 0, "minor"), ms = ns.map(n => n.midi);
+        const out = ms.filter(m => m < lo || m > hi).length, mean = ms.reduce((a, b) => a + b, 0) / ms.length;
+        const score = out * 100 + Math.abs(mean - center);
+        if (!best || score < best.score) best = { score, ns, tonic: base + s };
+      }
+      return { notes: best.ns, tonic: best.tonic };
+    },
     runShapes: k => { shape = k; buildShapeChips(); drawShapes(); runAllShapes(); },
     notesFor: k => notesFor(k, keyShift()),
     keyLabel: () => keyLabel(keyShift()),

@@ -725,6 +725,96 @@
     $("#cSummary").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toBand(); } };
   }
 
+  /* ---------- helpers for the guided Session ---------- */
+  /* one pass of the loop with one riff landing on each chord change.
+     rids[i] is the riff that lands on the downbeat of chord i+1 (the last one lands back on chord 1); null rests. */
+  function landingPass(C, rids) {
+    const notes = [], occ = [], labels = [];
+    const bounds = C.starts.slice(1).concat([C.loopBeats]);
+    let prevLast = null, prevEnd = -1;
+    bounds.forEach((b, i) => {
+      const rid = rids[i % rids.length]; if (!rid) return;
+      const r = riffById(rid);
+      const lead = r.beats.reduce((a, x) => a + x, 0) - r.beats[r.beats.length - 1];
+      const pick = cx => {
+        let best = null;
+        T.lockSpots(r, cx, occ).forEach(sp => {
+          const d = (b - lead) - sp.start; if (d < -1e-6 || d > 2) return;
+          const sc = d + (sp.rank === "gold" ? 0 : .75);
+          if (!best || sc < best.sc) best = { sc, sp, cx };
+        });
+        return best;
+      };
+      // if the one-scale choice can't reach this chord, switch to the chord's own scale for this riff
+      let best = pick(C.ctx), switched = false;
+      if (!best && C.ctx.approach === "key") { best = pick(chordCtx(C)); switched = !!best; }
+      const landOn = C.chords[(i + 1) % C.n];
+      if (!best) { labels.push({ i, rid, name: r.name, miss: true, chord: T.chordName(landOn, C.fl) }); return; }
+      const chainFrom = prevLast != null && best.sp.start >= prevEnd - 1e-6 && best.sp.start - prevEnd <= .5 + 1e-6 ? prevLast : null;
+      const pl = T.placeItem(r, best.sp.start, best.cx, chainFrom, 0); if (!pl) return;
+      const span = T.riffSpan(pl);
+      occ.push({ start: span[0], end: span[1], lastMidi: pl.lastMidi });
+      pl.notes.forEach((nt, j) => notes.push({ beat: nt.beat, dur: nt.dur, midi: nt.midi, vel: velOf(r, j, pl.notes.length) }));
+      const lc = C.chords[pl.landChord];
+      labels.push({ i, rid, name: r.name, chord: T.chordName(lc, C.fl), land: `${cs(lc, pl.target.pc, C.fl)} (${pl.target.label})${switched ? ", chord's own scale" : ""}` });
+      prevLast = pl.lastMidi; prevEnd = span[1];
+    });
+    return { notes, labels };
+  }
+  function chordCtx(C) {
+    return C._chordCtx || (C._chordCtx = T.loopContext(C.prog, { key: st.cKey, style: st.cStyle, approach: "chord", flavor: st.cFlavor, lo: st.low, hi: st.cap, bars: st.cBars }));
+  }
+  /* scale walk: 1-2-3-4-5-4-3-2 of each chord's own mode, filling the chord */
+  function scaleWalkPass(C) {
+    const notes = [], labels = [];
+    C.chords.forEach((ch, i) => {
+      const info = C.infos[i], lad = T.ladder(info.modePcs, C.lo - 12, C.hi + 12);
+      let best = null;
+      lad.forEach((m, j) => {
+        if (mod(m) !== ch.root || j + 4 >= lad.length) return;
+        const run = [0, 1, 2, 3, 4, 3, 2, 1].map(s => lad[j + s]);
+        const out = run.filter(x => x < C.lo || x > C.hi).length, mean = run.reduce((a, x) => a + x, 0) / run.length;
+        const sc = out * 100 + Math.abs(mean - C.ctx.center);
+        if (!best || sc < best.sc) best = { sc, run };
+      });
+      if (!best) return;
+      const d = C.beats[i] / 8;
+      best.run.forEach((m, k) => notes.push({ beat: C.starts[i] + k * d, dur: d, midi: m, vel: k === 0 ? .9 : .78 }));
+      labels.push({ i, chord: T.chordName(ch, C.fl), mode: `${T.spell(ch.root, C.fl)} ${info.modeName}` });
+    });
+    return { notes, labels };
+  }
+  /* a plan made of passes: [{notes, kind: "riff"|"along"|"yours"|"loop", hint(i)}] */
+  function passesPlan(C, passes, o) {
+    const b = 60 / st.tempo, tl = VL.audio.timeline();
+    for (let i = 0; i < 4; i++) { tl.click(i * b, i === 0, false); const k = i; tl.ui(i * b, () => VL.bar.status("Count-in", `${k + 1} of 4 · ${o.title}`)); }
+    const t0 = 4 * b;
+    let prev = null;
+    const voicings = C.chords.map(ch => (prev = voice(voiceTones(ch, C.style), prev)));
+    const MAIN = { riff: "Listen", along: "Sing along", yours: "Your turn", loop: "Your riff" };
+    let tagT = t0;
+    passes.forEach((ps, p) => {
+      const base = t0 + p * C.loopBeats * b;
+      C.chords.forEach((ch, i) => {
+        compChord(tl, base + C.starts[i] * b, C.beats[i], ch, C.chords[(i + 1) % C.n], C.style, b, voicings[i]);
+        for (let k = 0; k < C.beats[i]; k++) tl.click(base + (C.starts[i] + k) * b, k % 4 === 0, true);
+        const hint = ps.hint ? ps.hint(i) : "";
+        const detail = `${o.label} · pass ${p + 1} of ${passes.length} · ${T.chordName(ch, C.fl)}${hint ? " · " + hint : ""}`;
+        tl.ui(base + C.starts[i] * b, () => VL.bar.status(MAIN[ps.kind], detail, ps.kind === "yours" || ps.kind === "loop"));
+      });
+      if (ps.kind === "riff" || ps.kind === "along") ps.notes.forEach(nt => {
+        const t = base + nt.beat * b; if (t < t0 - 1e-6) return;
+        tl.note(t, nt.midi, nt.dur * b * .92, nt.vel * (ps.kind === "along" ? .5 : 1));
+      });
+      tagT = base + C.loopBeats * b;
+    });
+    compChord(tl, tagT, 4, C.chords[0], C.chords[0], C.style, b, voicings[0]);
+    tl.ui(tagT, () => VL.bar.status("Home", T.chordName(C.chords[0], C.fl)));
+    tl.end = tagT + 4 * b;
+    return { tl, title: o.title, bumpable: false, keyText: `${T.spell(st.cKey, C.fl)} ${T.TONALITY[C.prog.tonality].label}`, tempoText: `${st.tempo} bpm`,
+      meta: Object.assign({ chapter: "session", bpm: st.tempo }, o.meta || {}), beats: 8 + passes.length * C.loopBeats };
+  }
+
   /* ---------- the dock: play and the main band settings, always on screen in Changes ---------- */
   const DOCK = [["#dProg", "#cProg", "cProg"], ["#dKey", "#cKey", "cKey", 1], ["#dStyle", "#cStyle", "cStyle"], ["#dMode", "#cMode", "cMode"]];
   function cloneDock() {
@@ -773,6 +863,7 @@
     saved: () => saved,
     editSaved(id) { const s = saved.find(x => x.id === id); if (!s) return; loadArrangement(s); VL.go("changes"); setTimeout(() => $("#laneHead").scrollIntoView({ block: "start" }), 60); },
     playSaved(id, mode) { const s = saved.find(x => x.id === id); if (!s) return; loadArrangement(s); VL.go("changes"); setTimeout(() => VL.audio.run(buildPlan({ mode: mode || "listen" })), 60); },
-    compute
+    compute,
+    session: { landingPass, scaleWalkPass, passesPlan, riffName: id => riffById(id).name, riffs: RIFFS }
   };
 })();

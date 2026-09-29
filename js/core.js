@@ -12,7 +12,7 @@
     set: "minor", key: 4, tempo: 70, cap: 72, low: 52, oct: 0, mode: "echo", sound: "piano", spacing: "tight",
     wItem: "r:qd", wLow: 57, wHigh: 72, wReps: 4, wMode: "along",
     cProg: "axis", cKey: 7, cStyle: "rnb", cBars: 1, cLoops: 4, cMode: "listen", cApproach: "key", cFlavor: "sweet", cRiff: "qd", cPlace: "every", cSource: "auto",
-    vItem: "v:cas3", vMethod: "doo", sLen: 15, chapter: "riffs", riffTab: "riffs", guideTab: "g-runs"
+    vItem: "v:cas3", vMethod: "doo", sLen: 15, chapter: "riffs", riffTab: "riffs", guideTab: "g-runs", sFormat: "rotate", sOne: "qd", sMode: "ladder"
   };
   const st = VL.st = Object.assign({}, DEF);
   try {
@@ -68,6 +68,9 @@
       $$("#bRate [data-r]").forEach(btn => btn.onclick = () => {
         const r = btn.dataset.r, p = VL.audio.lastPlan;
         if (p) VL.log.add(p, r);
+        if (p && p.onRate) p.onRate(r);
+        // guided session steps roll straight into the next step once rated
+        if (p && p.autoNext && p.next) { VL.bar.mode("off"); p.next.go(); return; }
         if (r === "Clean" && st.tempo < 100 && p && p.bumpable) {
           const nt = Math.min(120, st.tempo + 5);
           $("#bumpBtn").textContent = `Set tempo to ${nt}`; $("#bumpBtn").dataset.t = nt;
