@@ -252,8 +252,11 @@
 
     <div class="sec-head lanehead" id="laneHead"><h2 class="tag">Riff lane <button type="button" class="q" data-guide="g-arrange" aria-label="How the riff lane and arranger work in the Guide">?</button></h2><p class="hint" id="cRiffNote"></p></div>
     <div class="arranger" id="arranger" hidden>
-      <div class="apal" id="aPalette" aria-label="Riffs to place"></div>
-      <label class="apick" for="aPick"><span>Riff to place</span><select id="aPick"></select></label>
+      <div class="apick3" id="aPalette" aria-label="Pick a riff to place">
+        <label class="apk" for="aPickB"><span class="part">Blocks</span><select id="aPickB"></select></label>
+        <label class="apk" for="aPickL"><span class="part">Licks</span><select id="aPickL"></select></label>
+        <label class="apk" for="aPickR"><span class="part">Runs</span><select id="aPickR"></select></label>
+      </div>
       <div class="row arow">
         <button class="btn pri" type="button" id="aFill" disabled>Fill every chord</button>
         <button class="btn" type="button" id="aSuggest">Fill with a mix</button>
@@ -304,9 +307,17 @@
     <div class="chead">
       <h2><span class="cn">03</span><span class="ct">Session</span></h2>
     </div>
-    <div class="stack2">
+    <div class="stack3">
       <div class="panel taped splayer" id="sPlayer">
-        <div class="sec-head"><h2 class="tag">Today's session <button type="button" class="q" data-guide="g-session" aria-label="How the session works in the Guide">?</button></h2><p id="sTotal"></p></div>
+        <div class="shead">
+          <div class="shead-l">
+            <p class="kicker">Today's session <button type="button" class="q" data-guide="g-session" aria-label="How the session works in the Guide">?</button></p>
+            <h2 class="stoday" id="sToday"></h2>
+            <p class="hint" id="sTotal"></p>
+          </div>
+          <button class="btn" type="button" id="sSetBtn" aria-expanded="false" aria-controls="sSettings">Change today's setup</button>
+        </div>
+        <div class="ssettings" id="sSettings" hidden>
         <div class="fields sfields">
           <label for="sProgSel" class="full">Today's changes<select id="sProgSel"></select></label>
           <label for="sKeySel">Song key<select id="sKeySel"></select></label>
@@ -322,8 +333,13 @@
             <select id="sLen"><option value="10">Short</option><option value="15">Standard</option><option value="20">Long (+ recording)</option></select>
           </label>
         </div>
-        <p class="hint" id="sSuggest">Suggested today: <b id="sSuggestName"></b> <button class="btn" type="button" id="sSuggestUse">Use it</button></p>
-        <ol class="sstrip" id="sStrip"></ol>
+          <p class="hint" id="sSuggest">Suggested today: <b id="sSuggestName"></b> <button class="btn" type="button" id="sSuggestUse">Use it</button></p>
+          <div class="row">
+            <label class="chk"><input type="checkbox" id="sAuto" checked> Rate, then keep going</label>
+            <button class="btn" type="button" id="sReset">Start today over</button>
+          </div>
+        </div>
+        <div class="sparts" id="sParts"></div>
         <div class="scard">
           <p class="kicker" id="sPart"></p>
           <h3 id="sTitle"></h3>
@@ -333,32 +349,33 @@
             <button class="btn pri bigplay" type="button" id="sGo">Start session</button>
             <button class="btn" type="button" id="sAgain">Repeat step</button>
             <button class="btn" type="button" id="sSkip">Skip step</button>
-            <button class="btn" type="button" id="sReset">Start over</button>
-            <label class="chk"><input type="checkbox" id="sAuto" checked> Rate, then keep going</label>
           </div>
         </div>
       </div>
-      <div class="panel" id="sMastery">
+      <div class="panel smore">
+        <nav class="subnav tabs2 smoretabs" id="sMoreTabs" role="tablist"><button type="button" data-tab="mastery">Five-block mastery</button><button type="button" data-tab="streak">Streak</button><button type="button" data-tab="progress">Progress</button><button type="button" data-tab="arr">My arrangements</button><button type="button" data-tab="rec">Record a take</button></nav>
+        <div id="sMore">
+      <div data-tab="mastery" class="panel" id="sMastery">
         <div class="sec-head"><h2 class="tag">Five-block mastery</h2></div>
         <div class="tbl"><table><thead><tr><th>Riff</th><th>Levels</th><th>Check tempo</th><th>Clean in a row</th></tr></thead><tbody id="sMast"></tbody></table></div>
         <p class="hint mkey">1 at home, slow · 2 at home, 100 bpm · 3 from any note (Move the shape) · 4 over the changes. Three Clean checks in a row add 5 bpm.</p>
       </div>
-      <div class="panel" id="sArrPanel">
+      <div data-tab="streak" class="panel">
+        <div class="sec-head"><h2 class="tag">Streak</h2><p id="sStreak"></p></div>
+        <div class="cal" id="sCal"></div>
+      </div>
+      <div data-tab="progress" class="panel">
+        <div class="sec-head"><h2 class="tag">Progress</h2></div>
+        <p class="empty" id="sProgEmpty">Rate a few runs and your progress shows up here.</p>
+        <div class="tbl" id="sProgWrap"><table><thead><tr><th>Drill</th><th>Runs</th><th>Clean</th><th>Best clean tempo</th><th>Last</th></tr></thead><tbody id="sProg"></tbody></table></div>
+      </div>
+      <div data-tab="arr" class="panel" id="sArrPanel">
         <div class="sec-head"><h2 class="tag">My arrangements</h2></div>
         <p class="empty" id="sArrEmpty">Nothing saved yet. Build one in the Changes riff lane.</p>
         <ol class="takes arrlist" id="sArr"></ol>
         <div class="row" style="margin-top:14px"><button class="btn" type="button" id="sArrNew">Open the arranger</button></div>
       </div>
-      <div class="panel">
-        <div class="sec-head"><h2 class="tag">Streak</h2><p id="sStreak"></p></div>
-        <div class="cal" id="sCal"></div>
-      </div>
-      <div class="panel">
-        <div class="sec-head"><h2 class="tag">Progress</h2></div>
-        <p class="empty" id="sProgEmpty">Rate a few runs and your progress shows up here.</p>
-        <div class="tbl" id="sProgWrap"><table><thead><tr><th>Drill</th><th>Runs</th><th>Clean</th><th>Best clean tempo</th><th>Last</th></tr></thead><tbody id="sProg"></tbody></table></div>
-      </div>
-      <div class="panel taped" id="recorder">
+      <div data-tab="rec" class="panel taped" id="recorder">
         <div class="sec-head"><h2 class="tag">Record a take <button type="button" class="q" data-guide="g-record" aria-label="Recording tips in the Guide">?</button></h2><p id="rWhat"></p></div>
         <div class="cgrid" style="margin-top:14px">
           <label for="rGuide">Piano riffs while you record
@@ -369,6 +386,8 @@
         <p class="warnmsg" id="rMsg" aria-live="polite"></p>
         <p class="empty" id="rEmpty">No takes yet. They stay in this tab until you close it.</p>
         <ol class="takes" id="rTakes"></ol>
+      </div>
+        </div>
       </div>
     </div>
   </section>
