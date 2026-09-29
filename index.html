@@ -305,14 +305,43 @@
       <h2><span class="cn">03</span><span class="ct">Session</span></h2>
     </div>
     <div class="stack2">
-      <div class="panel taped">
-        <div class="sec-head"><h2 class="tag">Today <button type="button" class="q" data-guide="g-session" aria-label="How the routine works in the Guide">?</button></h2><p id="sTotal"></p></div>
-        <div class="cgrid" style="margin-bottom:16px">
-          <label for="sLen">Session length
-            <select id="sLen"><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option></select>
+      <div class="panel taped splayer" id="sPlayer">
+        <div class="sec-head"><h2 class="tag">Today's session <button type="button" class="q" data-guide="g-session" aria-label="How the session works in the Guide">?</button></h2><p id="sTotal"></p></div>
+        <div class="fields sfields">
+          <label for="sProgSel" class="full">Today's changes<select id="sProgSel"></select></label>
+          <label for="sKeySel">Song key<select id="sKeySel"></select></label>
+          <label for="sStyleSel">Style<select id="sStyleSel"></select></label>
+          <label for="sFormat">Part 2: blocks over the changes
+            <select id="sFormat"><option value="rotate">Rotate all five</option><option value="one">One riff on every chord</option><option value="weak">My weakest riff</option></select>
+          </label>
+          <label for="sOne" id="sOneWrap">Riff<select id="sOne"></select></label>
+          <label for="sMode">Part 2 mode
+            <select id="sMode"><option value="ladder">Ladder: listen to echo</option><option value="listen">Listen</option><option value="along">Sing along (quiet piano)</option><option value="echo">Echo (piano, then you)</option><option value="solo">Solo (loop only)</option></select>
+          </label>
+          <label for="sLen">Length
+            <select id="sLen"><option value="10">Short</option><option value="15">Standard</option><option value="20">Long (+ recording)</option></select>
           </label>
         </div>
-        <ol class="rsteps" id="sSteps"></ol>
+        <p class="hint" id="sSuggest">Suggested today: <b id="sSuggestName"></b> <button class="btn" type="button" id="sSuggestUse">Use it</button></p>
+        <ol class="sstrip" id="sStrip"></ol>
+        <div class="scard">
+          <p class="kicker" id="sPart"></p>
+          <h3 id="sTitle"></h3>
+          <p id="sDetail"></p>
+          <div class="stair-wrap" id="sStairWrap"><div class="stair" id="sStair"></div></div>
+          <div class="row">
+            <button class="btn pri bigplay" type="button" id="sGo">Start session</button>
+            <button class="btn" type="button" id="sAgain">Repeat step</button>
+            <button class="btn" type="button" id="sSkip">Skip step</button>
+            <button class="btn" type="button" id="sReset">Start over</button>
+            <label class="chk"><input type="checkbox" id="sAuto" checked> Rate, then keep going</label>
+          </div>
+        </div>
+      </div>
+      <div class="panel" id="sMastery">
+        <div class="sec-head"><h2 class="tag">Five-block mastery</h2></div>
+        <div class="tbl"><table><thead><tr><th>Riff</th><th>Levels</th><th>Check tempo</th><th>Clean in a row</th></tr></thead><tbody id="sMast"></tbody></table></div>
+        <p class="hint mkey">1 at home, slow · 2 at home, 100 bpm · 3 from any note (Move the shape) · 4 over the changes. Three Clean checks in a row add 5 bpm.</p>
       </div>
       <div class="panel" id="sArrPanel">
         <div class="sec-head"><h2 class="tag">My arrangements</h2></div>
